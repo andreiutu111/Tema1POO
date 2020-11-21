@@ -1,18 +1,23 @@
 package main;
 
+import action.Action;
 import checker.Checkstyle;
 import checker.Checker;
 import common.Constants;
-import fileio.Input;
-import fileio.InputLoader;
-import fileio.Writer;
+import fileio.*;
+import getactor.Actor;
 import org.json.simple.JSONArray;
+import user.User;
+import video.Movie;
+import video.SerialSeason;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -71,6 +76,86 @@ public final class Main {
         JSONArray arrayResult = new JSONArray();
 
         //TODO add here the entry point to your implementation
+        List<User> extractedUsers = new ArrayList<>();
+
+        List<UserInputData> listUsers = input.getUsers();
+        if (listUsers.size() > 0) {
+            for (UserInputData u : listUsers) {
+                User extractNewUser = new User(u.getUsername(), u.getSubscriptionType(), u.getFavoriteMovies(), u.getHistory());
+                extractedUsers.add(extractNewUser);
+            }
+        }
+
+
+        ArrayList<Movie> extractedMovies = new ArrayList<>();
+
+        List<MovieInputData> listMovies = input.getMovies();
+        if (listMovies.size() > 0) {
+            for (MovieInputData m : listMovies) {
+                Movie extractNewMovie = new Movie(m.getTitle(), m.getYear(), m.getGenres(), m.getCast(), m.getDuration());
+                extractedMovies.add(extractNewMovie);
+            }
+        }
+
+
+        ArrayList<SerialSeason> extractedSerialsSeason = new ArrayList<>();
+
+        List<SerialInputData> listSerialsSeason = input.getSerials();
+        if (listSerialsSeason.size() > 0) {
+            for (SerialInputData s : listSerialsSeason) {
+                SerialSeason extractNewSerials = new SerialSeason(s.getTitle(), s.getYear(), s.getGenres(), s.getCast(), s.getNumberSeason(), s.getSeasons());
+                extractedSerialsSeason.add(extractNewSerials);
+            }
+        }
+
+        ArrayList<Actor> extractedActors = new ArrayList<>();
+
+        List<ActorInputData> listActors = input.getActors();
+        if (listActors.size() > 0) {
+            for (ActorInputData a : listActors) {
+                Actor extractNewActor = new Actor(a.getName(), a.getCareerDescription(), a.getFilmography(), a.getAwards());
+                extractedActors.add(extractNewActor);
+            }
+        }
+
+        ArrayList<Action> extractedActions = new ArrayList<>();
+
+        List<ActionInputData> listActions = input.getCommands();
+        if (listActions.size() > 0) {
+            for (ActionInputData a : listActions) {
+                Action extractNewAction = new Action(a.getSeasonNumber(), a.getGrade(), a.getTitle(), a.getUsername(), a.getObjectType(), a.getNumber(), a.getCriteria(), a.getSortType(), a.getGenre(), a.getActionType(), a.getActionId(), a.getFilters(), a.getType());
+                extractedActions.add(extractNewAction);
+            }
+
+            for (Action extractedAction : extractedActions) {
+                if (extractedAction.getActionType().equals("command")) {
+                    User usr = null;
+                    String title = extractedAction.getTitle();
+                    int actId = extractedAction.getActionId();
+                    String subType = extractedAction.getType();
+
+                    for (User u : extractedUsers) {
+                        if (u.getUsername().equals(extractedAction.getUsername())) {
+                            usr = u;
+                            break;
+                        }
+                    }
+
+                    String output = null;
+                    if (subType.equals("view")) {
+                        output = usr.setView(title);
+                    } else if (subType.equals("favorite")) {
+                        output = usr.setFavorite(title);
+                    } else if (subType.equals("rating")) {
+                        output = usr.setRating(extractedMovies, extractedSerialsSeason, title, extractedAction.getGrade());
+                    }
+
+                    if (output != null) {
+                        arrayResult.add(fileWriter.writeFile(actId, title, output));
+                    }
+                }
+            }
+        }
 
         fileWriter.closeJSON(arrayResult);
     }
