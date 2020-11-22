@@ -2,10 +2,11 @@ package getactor;
 
 import actor.ActorsAwards;
 import video.Movie;
+import video.SeasonModel;
 import video.SerialSeason;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 public class Actor {
     private final String name;
@@ -36,51 +37,139 @@ public class Actor {
         return awards;
     }
 
-    private static double getMed (String actor, ArrayList<Movie> movies, ArrayList<SerialSeason> seasons){
+    private static double getMed (ArrayList<String> film, ArrayList<Movie> movies, ArrayList<SerialSeason> ser) {
         double rez = 0;
+        double rezsez = 0;
         int nr = 0;
 
-        for (Movie m:movies) {
-            int poz  = m.getCast().indexOf(actor);
-            if (poz != -1) {
-                rez += m.getRating();
-                nr++;
+        List<Double> rats;
+
+        for (String f : film) {
+            for (Movie m : movies) {
+                if (m.getTitle().equals(f)) {
+                    rats = m.getRating();
+
+                    for (Double num : rats) {
+                        if (num.doubleValue() != 0.0) {
+                            rez += num.doubleValue();
+                            nr++;
+                        }
+                    }
+
+                    if (nr != 0) {
+                        rez /= nr;
+                    }
+                    break;
+                }
             }
-        }
 
-        for (SerialSeason s:seasons) {
-            int poz  = s.getCast().indexOf(actor);
-            if (poz != -1) {
-                rez += s.getRating();
-                nr++;
-            }
-        }
+            if (rez == 0.0) {
+                for (SerialSeason s : ser) {
+                    if (s.getTitle().equals(f)) {
+                        ArrayList<SeasonModel> seasonsSerial = s.getSeasons();
 
-        rez /= nr;
-        return rez;
-    }
+                        for (SeasonModel sez : seasonsSerial) {
+                            rats = sez.getRating();
+                            rezsez = 0;
+                            nr = 0;
 
-    public static ArrayList<Actor> getAverage(int N, ArrayList<Actor> actors, ArrayList<Movie> movies, ArrayList<SerialSeason> seasons) {
-        ArrayList<Actor> sortAct = new ArrayList<>();
-        sortAct.addAll(actors);
+                            for (Double num : rats) {
+                                    rezsez += num.doubleValue();
+                                    nr++;
+                            }
 
-        int lenArray = sortAct.size();
-        for (int i = 0 ; i < lenArray - 1; i++){
-            for (int j = i + 1 ; j < lenArray ; j++){
-                if (getMed(sortAct.get(i).getName(), movies, seasons) > getMed(sortAct.get(j).getName(), movies, seasons)){
-                    Actor aux = sortAct.get(i);
-                    sortAct.remove(i);
-                    sortAct.add(i, sortAct.get(j));
-                    sortAct.remove(j);
-                    sortAct.add(j, aux);
+                            if (nr != 0) {
+                                rez += rezsez / nr;
+                            }
+                        }
+
+                        rez /= s.getNo();
+                        break;
+                    }
                 }
             }
         }
 
-        if (lenArray > N + 1) {
-            sortAct.subList(N + 1, lenArray).clear();
+        return rez;
+    }
+
+    public static String getAverage(int N, ArrayList<Actor> actors, ArrayList<Movie> movies, ArrayList<SerialSeason> seasons, String sortType) {
+        ArrayList<Actor> sortAct = actors;
+        int lenArray = sortAct.size();
+
+        double[] ratmed = new double[lenArray];
+        ArrayList<Actor> checkedAct = new ArrayList<>();
+        int len = 0;
+        double medie;
+
+        for (int i = 0 ; i < lenArray; i++) {
+            medie = getMed(sortAct.get(i).getFilmography(), movies, seasons);
+            if (medie > 0) {
+                ratmed[len] = medie;
+                checkedAct.add(sortAct.get(i));
+                len++;
+            }
         }
 
-        return sortAct;
+        lenArray = len;
+        sortAct = checkedAct;
+
+        boolean ok = true;
+        if (sortType.equals("asc")) {
+            ok = true;
+        } else if (sortType.equals("desc")) {
+            ok = false;
+        }
+
+        double aux;
+        for (int i = 0 ; i < lenArray - 1; i++){
+            for (int j = i + 1 ; j < lenArray ; j++){
+                if (ok == true) {
+                    if (ratmed[i] > ratmed[j]) {
+                        aux = ratmed[i];
+                        ratmed[i] = ratmed[j];
+                        ratmed[j] = aux;
+                        Collections.swap(sortAct, i, j);
+                    } else if (ratmed[i] == ratmed[j]) {
+                        if (sortAct.get(i).getName().compareTo(sortAct.get(j).getName()) > 0) {
+                            aux = ratmed[i];
+                            ratmed[i] = ratmed[j];
+                            ratmed[j] = aux;
+                            Collections.swap(sortAct, i, j);
+                        }
+                    }
+                } else {
+                    if (ratmed[i] < ratmed[j]) {
+                        aux = ratmed[i];
+                        ratmed[i] = ratmed[j];
+                        ratmed[j] = aux;
+                        Collections.swap(sortAct, i, j);
+                    } else if (ratmed[i] == ratmed[j]) {
+                        if (sortAct.get(i).getName().compareTo(sortAct.get(j).getName()) < 0) {
+                            aux = ratmed[i];
+                            ratmed[i] = ratmed[j];
+                            ratmed[j] = aux;
+                            Collections.swap(sortAct, i, j);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (lenArray > N) {
+            sortAct.subList(N, lenArray).clear();
+        }
+
+        StringBuilder str = new StringBuilder();
+        str.append("Query result: [");
+
+        for (Actor a:sortAct) {
+            str.append(a.name + ", ");
+        }
+        str.delete(str.length() - 2, str.length());
+        str.append("]");
+
+        String retstr = str.toString();
+        return retstr;
     }
 }

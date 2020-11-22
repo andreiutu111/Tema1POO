@@ -3,13 +3,14 @@ package video;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Movie extends Video {
-    private final int duration;
+public class SeasonModel {
+    private final int currentSeason;
+    private int duration;
     private List<Double> ratings;
     private List<String> userName;
 
-    public Movie(final String title, final int year, final ArrayList<String> genres, final ArrayList<String> cast, final int duration) {
-        super(title, year, genres, cast);
+    public SeasonModel(final int currentSeason, final int duration) {
+        this.currentSeason = currentSeason;
         this.duration = duration;
         this.ratings = new ArrayList<>();
         this.userName = new ArrayList<>();
@@ -20,11 +21,17 @@ public class Movie extends Video {
         this.userName.add(name);
     }
 
-    public List<String> getuserName() { return userName; }
-    public List<Double> getRating() {
-        return ratings;
+    public List<String> getUserName() { return userName; }
+
+    public int getCurrentSeason() {
+        return currentSeason;
     }
+
     public int getDuration() {
         return duration;
+    }
+
+    public List<Double> getRating() {
+        return ratings;
     }
 }

@@ -4,11 +4,13 @@ import action.Action;
 import checker.Checkstyle;
 import checker.Checker;
 import common.Constants;
+import entertainment.Season;
 import fileio.*;
 import getactor.Actor;
 import org.json.simple.JSONArray;
 import user.User;
 import video.Movie;
+import video.SeasonModel;
 import video.SerialSeason;
 
 import java.io.File;
@@ -103,7 +105,15 @@ public final class Main {
         List<SerialInputData> listSerialsSeason = input.getSerials();
         if (listSerialsSeason.size() > 0) {
             for (SerialInputData s : listSerialsSeason) {
-                SerialSeason extractNewSerials = new SerialSeason(s.getTitle(), s.getYear(), s.getGenres(), s.getCast(), s.getNumberSeason(), s.getSeasons());
+                ArrayList<Season> seasonsSer = s.getSeasons();
+                ArrayList<SeasonModel> newseason = new ArrayList<>();
+
+                for (int i = 0 ; i < seasonsSer.size() ; i++) {
+                    SeasonModel seas = new SeasonModel(i, seasonsSer.get(i).getDuration());
+                    newseason.add(seas);
+                }
+
+                SerialSeason extractNewSerials = new SerialSeason(s.getTitle(), s.getYear(), s.getGenres(), s.getCast(), s.getNumberSeason(), newseason);
                 extractedSerialsSeason.add(extractNewSerials);
             }
         }
@@ -128,11 +138,13 @@ public final class Main {
             }
 
             for (Action extractedAction : extractedActions) {
-                if (extractedAction.getActionType().equals("command")) {
+                String actionType = extractedAction.getActionType();
+                if (actionType.equals("command")) {
+                    String subType = extractedAction.getType();
                     User usr = null;
                     String title = extractedAction.getTitle();
+
                     int actId = extractedAction.getActionId();
-                    String subType = extractedAction.getType();
 
                     for (User u : extractedUsers) {
                         if (u.getUsername().equals(extractedAction.getUsername())) {
@@ -147,7 +159,21 @@ public final class Main {
                     } else if (subType.equals("favorite")) {
                         output = usr.setFavorite(title);
                     } else if (subType.equals("rating")) {
-                        output = usr.setRating(extractedMovies, extractedSerialsSeason, title, extractedAction.getGrade());
+                        output = usr.setRating(extractedMovies, extractedSerialsSeason, title, extractedAction.getGrade(), extractedAction.getSeasonNumber());
+                    }
+
+                    if (output != null) {
+                        arrayResult.add(fileWriter.writeFile(actId, title, output));
+                    }
+                } else if (actionType.equals("query")) {
+                    String crit = extractedAction.getCriteria();
+                    String sortType = extractedAction.getSortType();
+                    String output = null;
+                    String title = extractedAction.getTitle();
+                    int actId = extractedAction.getActionId();
+
+                    if (crit.equals("average")) {
+                        output = Actor.getAverage(extractedAction.getNumber(), extractedActors, extractedMovies, extractedSerialsSeason, sortType);
                     }
 
                     if (output != null) {

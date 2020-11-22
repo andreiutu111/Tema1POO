@@ -1,6 +1,7 @@
 package user;
 
 import video.Movie;
+import video.SeasonModel;
 import video.SerialSeason;
 
 import java.util.ArrayList;
@@ -62,31 +63,39 @@ public class User {
         }
     }
 
-    public String setRating(ArrayList<Movie> movies, ArrayList<SerialSeason> seasons, String video, double grade) {
+    public String setRating(ArrayList<Movie> movies, ArrayList<SerialSeason> serials, String video, double grade, int seasonNumber) {
         if (this.viewed.containsKey(video)) {
             Movie movie = null;
             for (Movie v : movies) {
-                if (v.getTitle().equals(video)) {
+                if (v.getTitle().equals(video) == true) {
                     movie = v;
                     break;
                 }
             }
 
             if (movie != null) {
-                movie.setRating(grade);
-                return "success -> " + video + " was rated with " + grade + " by " + this.username;
+                if (movie.getuserName().indexOf(this.username) == -1) {
+                    movie.setRating(grade, this.username);
+                    return "success -> " + video + " was rated with " + grade + " by " + this.username;
+                } else {
+                    return "error -> " + video + " has been already rated";
+                }
             } else {
-                SerialSeason seas = null;
-                for (SerialSeason s : seasons) {
-                    if (s.getTitle().equals(video)) {
-                        seas = s;
+                SeasonModel ser = null;
+                for (SerialSeason s : serials) {
+                    if (s.getTitle().equals(video) == true) {
+                        ser = s.getSeasons().get(seasonNumber - 1);
                         break;
                     }
                 }
 
-                if (seas != null) {
-                    seas.setRating(grade);
-                    return "success -> " + video + " was rated with " + grade + " by " + this.username;
+                if (ser != null) {
+                    if (ser.getUserName().indexOf(this.username) == -1) {
+                        ser.setRating(grade, this.username);
+                        return "success -> " + video + " was rated with " + grade + " by " + this.username;
+                    } else {
+                        return "error -> " + video + " has been already rated";
+                    }
                 }
             }
         }
