@@ -7,6 +7,8 @@ import video.SerialSeason;
 
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Actor {
     private final String name;
@@ -47,18 +49,7 @@ public class Actor {
         for (String f : film) {
             for (Movie m : movies) {
                 if (m.getTitle().equals(f)) {
-                    rats = m.getRating();
-
-                    for (Double num : rats) {
-                        if (num.doubleValue() != 0.0) {
-                            rez += num.doubleValue();
-                            nr++;
-                        }
-                    }
-
-                    if (nr != 0) {
-                        rez /= nr;
-                    }
+                    rez = m.getValueRating();
                     break;
                 }
             }
@@ -123,7 +114,7 @@ public class Actor {
 
         double aux;
         for (int i = 0 ; i < lenArray - 1; i++){
-            for (int j = i + 1 ; j < lenArray ; j++){
+            for (int j = i + 1 ; j < lenArray; j++){
                 if (ok == true) {
                     if (ratmed[i] > ratmed[j]) {
                         aux = ratmed[i];
@@ -163,10 +154,135 @@ public class Actor {
         StringBuilder str = new StringBuilder();
         str.append("Query result: [");
 
-        for (Actor a:sortAct) {
-            str.append(a.name + ", ");
+        if (lenArray > 0) {
+            for (Actor a : sortAct) {
+                str.append(a.getName() + ", ");
+            }
+            str.delete(str.length() - 2, str.length());
         }
-        str.delete(str.length() - 2, str.length());
+
+        str.append("]");
+
+        String retstr = str.toString();
+        return retstr;
+    }
+
+    public static String getAwaAct(List<String> filtAwards, ArrayList<Actor> actors, String sortType) {
+        ArrayList<Actor> finSortActors = new ArrayList<>();
+        int[] noAwa = new int[actors.size()];
+
+        boolean ok;
+        int len = 0;
+        int aux;
+
+        for (Actor a:actors){
+            ok = true;
+
+            for (String fa:filtAwards) {
+                if (!a.getAwards().containsKey(ActorsAwards.valueOf(fa))){
+                    ok = false;
+                    break;
+                }
+            }
+
+            Collection<Integer> vals = a.getAwards().values();
+
+            if (ok == true) {
+                finSortActors.add(a);
+                noAwa[len] = vals.stream().mapToInt(Integer::valueOf).sum();
+                len++;
+            }
+        }
+
+        for (int i = 0 ; i < len - 1; i++){
+            for (int j = i + 1 ; j < len; j++) {
+                if (sortType.equals("asc")) {
+                    if (noAwa[i] > noAwa[j]) {
+                        aux = noAwa[i];
+                        noAwa[i] = noAwa[j];
+                        noAwa[j] = aux;
+                        Collections.swap(finSortActors, i, j);
+                    } else if (noAwa[i] == noAwa[j]) {
+                        if (finSortActors.get(i).getName().compareTo(finSortActors.get(j).getName()) > 0) {
+                            aux = noAwa[i];
+                            noAwa[i] = noAwa[j];
+                            noAwa[j] = aux;
+                            Collections.swap(finSortActors, i, j);
+                        }
+                    }
+                } else if (sortType.equals("desc")) {
+                    if (noAwa[i] < noAwa[j]) {
+                        aux = noAwa[i];
+                        noAwa[i] = noAwa[j];
+                        noAwa[j] = aux;
+                        Collections.swap(finSortActors, i, j);
+                    } else if (noAwa[i] == noAwa[j]) {
+                        if (finSortActors.get(i).getName().compareTo(finSortActors.get(j).getName()) < 0) {
+                            aux = noAwa[i];
+                            noAwa[i] = noAwa[j];
+                            noAwa[j] = aux;
+                            Collections.swap(finSortActors, i, j);
+                        }
+                    }
+                }
+            }
+        }
+
+        StringBuilder str = new StringBuilder();
+        str.append("Query result: [");
+
+        if (len != 0) {
+            for (Actor a : finSortActors) {
+                str.append(a.getName()).append(", ");
+            }
+            str.delete(str.length() - 2, str.length());
+        }
+
+        str.append("]");
+
+        String retstr = str.toString();
+        return retstr;
+    }
+
+    public static String getFilterDescription(List<String> words, ArrayList<Actor> actors, String sortType) {
+        ArrayList<Actor> sortActors = new ArrayList<>();
+
+        boolean ok;
+
+        for (Actor a:actors) {
+            ok = true;
+
+            for (String w:words) {
+                Pattern patt = Pattern.compile("[ '.,!{}()-]" + w + "[ '.,!{}()-]", Pattern.CASE_INSENSITIVE);
+                Matcher m = patt.matcher(a.careerDescription);
+
+                ok = m.find();
+                if (!ok) {
+                    break;
+                }
+            }
+
+            if (ok) {
+                sortActors.add(a);
+            }
+        }
+
+        if (sortType.equals("asc")) {
+            sortActors.sort((Actor a1, Actor a2) -> a1.getName().compareTo(a2.getName()));
+        } else {
+            sortActors.sort((Actor a1, Actor a2) -> a2.getName().compareTo(a1.getName()));
+        }
+
+        StringBuilder str = new StringBuilder();
+        str.append("Query result: [");
+
+        if (sortActors.size() != 0) {
+            for (Actor a : sortActors) {
+                str.append(a.getName()).append(", ");
+            }
+            str.delete(str.length() - 2, str.length());
+        }
+
         str.append("]");
 
         String retstr = str.toString();

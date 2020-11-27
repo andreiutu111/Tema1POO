@@ -99,6 +99,6 @@ public class User {
                 }
             }
         }
-        return null;
+        return "error -> " + video + " is not seen";
     }
 }

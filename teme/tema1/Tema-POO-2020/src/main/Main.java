@@ -174,6 +174,14 @@ public final class Main {
 
                     if (crit.equals("average")) {
                         output = Actor.getAverage(extractedAction.getNumber(), extractedActors, extractedMovies, extractedSerialsSeason, sortType);
+                    } else if (crit.equals("awards")) {
+                        output = Actor.getAwaAct(extractedAction.getFilters().get(3), extractedActors, sortType);
+                    } else if (crit.equals("filter_description")) {
+                        output = Actor.getFilterDescription(extractedAction.getFilters().get(2), extractedActors, sortType);
+                    } else if (crit.equals("ratings")) {
+                        if (extractedAction.getObjectType().equals("movies")) {
+                            output = Movie.getRatMov(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, sortType);
+                        }
                     }
 
                     if (output != null) {
@@ -182,6 +190,8 @@ public final class Main {
                 }
             }
         }
+
+        
 
         fileWriter.closeJSON(arrayResult);
     }
