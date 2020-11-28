@@ -86,6 +86,7 @@ public class Actor {
 
     public static String getAverage(int N, ArrayList<Actor> actors, ArrayList<Movie> movies, ArrayList<SerialSeason> seasons, String sortType) {
         ArrayList<Actor> sortAct = actors;
+
         int lenArray = sortAct.size();
 
         double[] ratmed = new double[lenArray];

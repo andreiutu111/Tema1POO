@@ -78,7 +78,7 @@ public final class Main {
         JSONArray arrayResult = new JSONArray();
 
         //TODO add here the entry point to your implementation
-        List<User> extractedUsers = new ArrayList<>();
+        ArrayList<User> extractedUsers = new ArrayList<>();
 
         List<UserInputData> listUsers = input.getUsers();
         if (listUsers.size() > 0) {
@@ -139,12 +139,13 @@ public final class Main {
 
             for (Action extractedAction : extractedActions) {
                 String actionType = extractedAction.getActionType();
+                int actId = extractedAction.getActionId();
+                String output = null;
+
                 if (actionType.equals("command")) {
                     String subType = extractedAction.getType();
-                    User usr = null;
                     String title = extractedAction.getTitle();
-
-                    int actId = extractedAction.getActionId();
+                    User usr = null;
 
                     for (User u : extractedUsers) {
                         if (u.getUsername().equals(extractedAction.getUsername())) {
@@ -153,7 +154,6 @@ public final class Main {
                         }
                     }
 
-                    String output = null;
                     if (subType.equals("view")) {
                         output = usr.setView(title);
                     } else if (subType.equals("favorite")) {
@@ -168,9 +168,7 @@ public final class Main {
                 } else if (actionType.equals("query")) {
                     String crit = extractedAction.getCriteria();
                     String sortType = extractedAction.getSortType();
-                    String output = null;
                     String title = extractedAction.getTitle();
-                    int actId = extractedAction.getActionId();
 
                     if (crit.equals("average")) {
                         output = Actor.getAverage(extractedAction.getNumber(), extractedActors, extractedMovies, extractedSerialsSeason, sortType);
@@ -181,11 +179,56 @@ public final class Main {
                     } else if (crit.equals("ratings")) {
                         if (extractedAction.getObjectType().equals("movies")) {
                             output = Movie.getRatMov(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, sortType);
+                        } else if (extractedAction.getObjectType().equals("shows")) {
+                            output = SerialSeason.getRatSerial(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, sortType);
                         }
+                    } else if (crit.equals("favorite")) {
+                        if (extractedAction.getObjectType().equals("movies")) {
+                            output = Movie.getFavMov(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, extractedUsers, sortType);
+                        } else if (extractedAction.getObjectType().equals("shows")) {
+                            output = SerialSeason.getFavSerials(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, extractedUsers, sortType);
+                        }
+                    } else if (crit.equals("longest")) {
+                        if (extractedAction.getObjectType().equals("movies")) {
+                            output = Movie.getLongestMovie(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, sortType);
+                        } else if (extractedAction.getObjectType().equals("shows")) {
+                            output = SerialSeason.getLongestSerial(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, sortType);
+                        }
+                    } else if (crit.equals("most_viewed")) {
+                        if (extractedAction.getObjectType().equals("movies")) {
+                            output = Movie.getMostViewedMovie(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, extractedUsers, sortType);
+                        } else if (extractedAction.getObjectType().equals("shows")) {
+                            output = SerialSeason.getMostViewedSerial(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, extractedUsers, sortType);
+                        }
+                    } else if (crit.equals("num_ratings")) {
+                        output = User.getNumOfRat(extractedAction.getNumber(), extractedUsers, sortType);
                     }
 
                     if (output != null) {
                         arrayResult.add(fileWriter.writeFile(actId, title, output));
+                    }
+                } else if (actionType.equals("recommendation")) {
+                    String type = extractedAction.getType();
+                    User usr = null;
+
+                    for (User u : extractedUsers) {
+                        if (u.getUsername().equals(extractedAction.getUsername())) {
+                            usr = u;
+                            break;
+                        }
+                    }
+
+                    if (type.equals("standard")) {
+                        output = usr.getStandard(extractedMovies, extractedSerialsSeason);
+                    } else if (type.equals("best_unseen")) {
+                        System.out.println(filePath1);
+                        System.out.println(actId);
+                        output = usr.getBestUnseen(extractedMovies, extractedSerialsSeason);
+                        System.out.println(output);
+                    }
+
+                    if (output != null) {
+                        arrayResult.add(fileWriter.writeFile(actId, extractedAction.getUsername(), output));
                     }
                 }
             }

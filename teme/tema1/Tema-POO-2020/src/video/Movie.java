@@ -1,10 +1,13 @@
 package video;
 
 import getactor.Actor;
+import user.User;
 
+import java.rmi.MarshalledObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.SocketHandler;
 
 public class Movie extends Video {
     private final int duration;
@@ -88,58 +91,89 @@ public class Movie extends Video {
         return sortedMovies;
     }
 
+    public static String getRezStr(ArrayList<Movie> sortMovies) {
+        StringBuilder str = new StringBuilder();
+        str.append("Query result: [");
+
+        if (sortMovies.size() != 0) {
+            for (Movie m: sortMovies) {
+                str.append(m.getTitle()).append(", ");
+            }
+            str.delete(str.length() - 2, str.length());
+        }
+
+        str.append("]");
+        return str.toString();
+    }
+
+    public static int checkYearAndGenre(List <String> year, List <String> genre, Movie m) {
+        boolean ok1 = false;
+        boolean ok2 = false;
+
+        if (year.get(0) != null) {
+            for (String y:year) {
+                if (Integer.toString(m.getYear()).equals(y)) {
+                    ok1 = true;
+                    break;
+                }
+            }
+        }
+
+        if (genre.get(0) != null) {
+            List<String> movieGen = m.getGenres();
+
+            String gen = genre.get(0);
+            for (String mg:movieGen) {
+                if (mg.equals(gen)) {
+                    ok2 = true;
+                    break;
+                }
+            }
+        }
+
+        if (ok1 == true && ok2 == false) {
+            return 1;
+        } else if (ok1 == false && ok2 == true) {
+            return 2;
+        } else if (ok1 == true && ok2 == true) {
+            return 3;
+        }
+
+        return 0;
+    }
+
+
     public static String getRatMov(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, String SortType) {
         ArrayList<Movie> sortMovies = new ArrayList<>();
         double[] sortVal = new double[movies.size()];
         int len = 0;
 
         double rating;
-        boolean ok1;
-        boolean ok2;
+        int ok;
+
         for (Movie m:movies) {
-            ok1 = false;
-            ok2 = false;
             rating = m.getValueRating();
-            if (year != null) {
-                for (String y:year) {
-                    if (Integer.toString(m.getYear()).equals(y)) {
-                        ok1 = true;
-                        break;
-                    }
-                }
-            }
 
-            if (genre != null) {
-                List<String> movieGen = m.getGenres();
-
-                String gen = genre.get(0);
-                for (String mg:movieGen) {
-                    if (mg.equals(gen)) {
-                        ok2 = true;
-                        break;
-                    }
-                }
-
-            }
+            ok = checkYearAndGenre(year, genre, m);
 
             if (rating != 0.0) {
-                if (year != null) {
-                    if (genre != null) {
-                        if (ok1 == true && ok2 == true) {
+                if (year.get(0) != null) {
+                    if (genre.get(0) != null) {
+                        if (ok == 3) {
                             sortVal[len] = rating;
                             sortMovies.add(m);
                             len++;
                         }
                     } else {
-                        if (ok1 == true) {
+                        if (ok == 1) {
                             sortVal[len] = rating;
                             sortMovies.add(m);
                             len++;
                         }
                     }
                 } else {
-                    if (genre != null) {
-                        if (ok2 == true) {
+                    if (genre.get(0) != null) {
+                        if (ok == 2) {
                             sortVal[len] = rating;
                             sortMovies.add(m);
                             len++;
@@ -159,18 +193,172 @@ public class Movie extends Video {
             sortMovies.subList(N, len).clear();
         }
 
-        StringBuilder str = new StringBuilder();
-        str.append("Query result: [");
+        return Movie.getRezStr(sortMovies);
+    }
 
-        if (len != 0) {
-            for (Movie m: sortMovies) {
-                str.append(m.getTitle()).append(", ");
+    public static String getFavMov(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, ArrayList<User> users, String sortType) {
+        ArrayList<Movie> sortedMovies = new ArrayList<>();
+        double[] noApp = new double[movies.size()];
+        int len = 0;
+
+        int ok;
+        double no;
+        for (Movie m:movies) {
+            no = 0;
+
+            for (User u:users) {
+                if (u.getFavorite().indexOf(m.getTitle()) != -1) {
+                    no++;
+                }
             }
-            str.delete(str.length() - 2, str.length());
+
+            ok = checkYearAndGenre(year, genre, m);
+
+            if (no != 0.0) {
+                if (year.get(0) != null) {
+                    if (genre.get(0) != null) {
+                        if (ok == 3) {
+                            noApp[len] = no;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    } else {
+                        if (ok == 1) {
+                            noApp[len] = no;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    }
+                } else {
+                    if (genre.get(0) != null) {
+                        if (ok == 2) {
+                            noApp[len] = no;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    } else {
+                        noApp[len] = no;
+                        sortedMovies.add(m);
+                        len++;
+                    }
+                }
+            }
         }
 
-        str.append("]");
+        sortedMovies = Movie.sortMoviesWithValues(sortedMovies, noApp, sortType);
 
-        return str.toString();
+        if (len > N) {
+            sortedMovies.subList(N, len).clear();
+        }
+
+        return Movie.getRezStr(sortedMovies);
+    }
+
+    public static String getLongestMovie(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, String sortType) {
+        ArrayList<Movie> sortedMovies = new ArrayList<>();
+        double[] dur = new double[movies.size()];
+        int ok;
+        int len = 0;
+        int duration;
+
+        for (Movie m:movies) {
+            ok = checkYearAndGenre(year, genre, m);
+            duration = m.getDuration();
+
+            if (duration != 0) {
+                if (year.get(0) != null) {
+                    if (genre.get(0) != null) {
+                        if (ok == 3) {
+                            dur[len] = duration * 1.0;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    } else {
+                        if (ok == 1) {
+                            dur[len] = duration * 1.0;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    }
+                } else {
+                    if (genre.get(0) != null) {
+                        if (ok == 2) {
+                            dur[len] = duration * 1.0;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    } else {
+                        dur[len] = duration * 1.0;
+                        sortedMovies.add(m);
+                        len++;
+                    }
+                }
+            }
+        }
+
+        sortedMovies = Movie.sortMoviesWithValues(sortedMovies, dur, sortType);
+
+        if (len > N) {
+            sortedMovies.subList(N, len).clear();
+        }
+
+        return Movie.getRezStr(sortedMovies);
+    }
+
+    public static String getMostViewedMovie(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, ArrayList<User> users, String sortType) {
+        ArrayList<Movie> sortedMovies = new ArrayList<>();
+        double[] noView = new double[movies.size()];
+        int len = 0;
+
+        double no;
+        int ok;
+        for (Movie m:movies) {
+            no = 0;
+            for (User u:users) {
+                if (u.getViewed().containsKey(m.getTitle())) {
+                    no += u.getViewed().get(m.getTitle());
+                }
+            }
+
+            ok = checkYearAndGenre(year, genre, m);
+
+            if (no != 0.0) {
+                if (year.get(0) != null) {
+                    if (genre.get(0) != null) {
+                        if (ok == 3) {
+                            noView[len] = no;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    } else {
+                        if (ok == 1) {
+                            noView[len] = no;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    }
+                } else {
+                    if (genre.get(0) != null) {
+                        if (ok == 2) {
+                            noView[len] = no;
+                            sortedMovies.add(m);
+                            len++;
+                        }
+                    } else {
+                        noView[len] = no;
+                        sortedMovies.add(m);
+                        len++;
+                    }
+                }
+            }
+        }
+
+        sortedMovies = Movie.sortMoviesWithValues(sortedMovies, noView, sortType);
+
+        if (len > N) {
+            sortedMovies.subList(N, len).clear();
+        }
+
+        return Movie.getRezStr(sortedMovies);
     }
 }
