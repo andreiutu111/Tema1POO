@@ -2,11 +2,13 @@ package user;
 
 import com.fasterxml.jackson.databind.cfg.MutableConfigOverride;
 import com.fasterxml.jackson.databind.ser.impl.UnknownSerializer;
+import entertainment.Genre;
 import entertainment.Season;
 import video.Movie;
 import video.SeasonModel;
 import video.SerialSeason;
 
+import java.rmi.MarshalledObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -213,11 +215,14 @@ public class User {
     public String getBestUnseen(ArrayList<Movie> movies, ArrayList<SerialSeason> serials) {
         ArrayList<Movie> sortedMovies = new ArrayList<>();
         double[] movRatings = new double[movies.size()];
+        int[] pozMov = new int[movies.size()];
         int lenMov = 0;
+        int auxpoz;
         double aux;
 
         for (Movie m : movies) {
             sortedMovies.add(m);
+            pozMov[lenMov] = lenMov;
             movRatings[lenMov] = m.getValueRating();
             lenMov++;
         }
@@ -228,7 +233,20 @@ public class User {
                    aux = movRatings[i];
                    movRatings[i] = movRatings[j];
                    movRatings[j] = aux;
+
+                   auxpoz = pozMov[i];
+                   pozMov[i] = pozMov[j];
+                   pozMov[j] = auxpoz;
+
                    Collections.swap(sortedMovies, i, j);
+                } else if (movRatings[i] == movRatings[j]) {
+                    if (pozMov[i] > pozMov[j]) {
+                        auxpoz = pozMov[i];
+                        pozMov[i] = pozMov[j];
+                        pozMov[j] = auxpoz;
+
+                        Collections.swap(sortedMovies, i, j);
+                    }
                 }
             }
         }
@@ -241,10 +259,12 @@ public class User {
 
         ArrayList<SerialSeason> sortedSerials = new ArrayList<>();
         double[] serRatings = new double[serials.size()];
+        int[] pozSerial = new int[serials.size()];
         int lenSer = 0;
 
         for (SerialSeason s : serials) {
             sortedSerials.add(s);
+            pozSerial[lenSer] = lenSer;
             serRatings[lenSer] = s.getValueRatingSerial();
             lenSer++;
         }
@@ -255,7 +275,20 @@ public class User {
                     aux = serRatings[i];
                     serRatings[i] = serRatings[j];
                     serRatings[j] = aux;
+
+                    auxpoz = pozSerial[i];
+                    pozSerial[i] = pozSerial[j];
+                    pozSerial[j] = auxpoz;
+
                     Collections.swap(sortedSerials, i, j);
+                } else if (serRatings[i] == serRatings[j]) {
+                    if (pozSerial[i] > pozSerial[j]) {
+                        auxpoz = pozSerial[i];
+                        pozSerial[i] = pozSerial[j];
+                        pozSerial[j] = auxpoz;
+
+                        Collections.swap(sortedSerials, i, j);
+                    }
                 }
             }
         }
@@ -267,5 +300,191 @@ public class User {
         }
 
         return "BestRatedUnseenRecommendation cannot be applied!";
+    }
+
+    public Genre convStrToGenre(String value) {
+        StringBuilder chGen = new StringBuilder(value.toUpperCase());
+        int poz = chGen.indexOf("&");
+        if (poz != -1) {
+            chGen.delete(poz, poz + 2);
+        }
+
+        poz = chGen.indexOf("-");
+        if (poz != -1) {
+            chGen.setCharAt(poz, '_');
+        }
+
+        poz = chGen.indexOf("_");
+        if (poz != -1) {
+            chGen.setCharAt(poz, '_');
+        }
+
+        poz = chGen.indexOf(" ");
+        if (poz != -1) {
+            chGen.setCharAt(poz, '_');
+        }
+
+        return Genre.valueOf(chGen.toString());
+    }
+
+    public String getPopular(ArrayList<Movie> movies, ArrayList<SerialSeason> serials, ArrayList<User> users) {
+        ArrayList<Genre> sortedGenres = new ArrayList<>();
+
+        int[] noView = new int[Genre.values().length];
+        int len = 0;
+        int aux;
+
+        for (Genre g : Genre.values()) {
+            noView[len] = 0;
+
+            for (Movie m : movies) {
+                ArrayList<String> movGen = m.getGenres();
+
+                for(String gen : movGen) {
+                    if (g.equals(convStrToGenre(gen))) {
+                        for (User u : users) {
+                            if (u.getViewed().containsKey(m.getTitle())) {
+                                noView[len] += u.getViewed().get(m.getTitle());
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            for (SerialSeason s : serials) {
+                ArrayList<String> movSer = s.getGenres();
+
+                for(String gen : movSer) {
+                    if (g.equals(convStrToGenre(gen))) {
+                        for (User u : users) {
+                            if (u.getViewed().containsKey(s.getTitle())) {
+                                noView[len] += u.getViewed().get(s.getTitle());
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            sortedGenres.add(g);
+            len++;
+        }
+
+        for (int i = 0 ; i < len - 1 ; i++) {
+            for (int j = i + 1 ; j < len ; j++) {
+                if (noView[i] < noView[j]) {
+                    aux = noView[i];
+                    noView[i] = noView[j];
+                    noView[j] = aux;
+                    Collections.swap(sortedGenres, i, j);
+                }
+            }
+        }
+
+        for (Genre g : sortedGenres) {
+            for (Movie m : movies) {
+                if (!this.getViewed().containsKey(m.getTitle())) {
+                    ArrayList<String> movGen = m.getGenres();
+
+                    for (String gen : movGen) {
+                        if (g.equals(convStrToGenre(gen))) {
+                            return "PopularRecommendation result: " + m.getTitle();
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Genre g : sortedGenres) {
+            for (SerialSeason s : serials) {
+                if (!this.getViewed().containsKey(s.getTitle())) {
+                    ArrayList<String> movSer = s.getGenres();
+
+                    for (String gen : movSer) {
+                        if (g.equals(convStrToGenre(gen))) {
+                            return "PopularRecommendation result: " + s.getTitle();
+                        }
+                    }
+                }
+            }
+        }
+
+        return "PopularRecommendation cannot be applied!";
+    }
+
+    public String getRecFav(ArrayList<Movie> movies, ArrayList<SerialSeason> serials, ArrayList<User> users) {
+        ArrayList<String> videos = new ArrayList<>();
+        int[] noFav = new int[movies.size() + serials.size()];
+        int[] poz = new int[movies.size() + serials.size()];
+        int len = 0;
+        int num;
+
+        for (Movie m : movies) {
+            num = 0;
+
+            for (User u : users) {
+                if (u.getFavorite().indexOf(m.getTitle()) != -1) {
+                    num++;
+                }
+            }
+
+            if (num != 0) {
+                poz[len] = len;
+                noFav[len] = num;
+                videos.add(m.getTitle());
+                len++;
+            }
+        }
+
+        for (SerialSeason s : serials) {
+            num = 0;
+
+            for (User u : users) {
+                if (u.getFavorite().indexOf(s.getTitle()) != -1) {
+                    num++;
+                }
+            }
+
+            if (num != 0) {
+                poz[len] = len;
+                noFav[len] = num;
+                videos.add(s.getTitle());
+                len++;
+            }
+        }
+
+        int aux;
+        for (int i = 0 ; i < len - 1 ; i++) {
+            for (int  j = 0 ; j < len ; j++) {
+                if (noFav[i] < noFav[j]) {
+                    aux = noFav[i];
+                    noFav[i] = noFav[j];
+                    noFav[j] = aux;
+
+                    aux = poz[i];
+                    poz[i] = poz[j];
+                    poz[j] = aux;
+
+                    Collections.swap(videos, i, j);
+                } else if (noFav[i] == noFav[j]) {
+                    if (poz[i] > poz[j]) {
+                        aux = poz[i];
+                        poz[i] = poz[j];
+                        poz[j] = aux;
+
+                        Collections.swap(videos, i, j);
+                    }
+                }
+            }
+        }
+
+        for (String s:videos) {
+            if (!this.viewed.containsKey(s)) {
+                return "FavoriteRecommendation result: " + s;
+            }
+        }
+
+        return "FavoriteRecommendation cannot be applied!";
     }
 }

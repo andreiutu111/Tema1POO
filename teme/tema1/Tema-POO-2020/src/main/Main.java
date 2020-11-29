@@ -221,10 +221,18 @@ public final class Main {
                     if (type.equals("standard")) {
                         output = usr.getStandard(extractedMovies, extractedSerialsSeason);
                     } else if (type.equals("best_unseen")) {
-                        System.out.println(filePath1);
-                        System.out.println(actId);
                         output = usr.getBestUnseen(extractedMovies, extractedSerialsSeason);
-                        System.out.println(output);
+                    } else if (type.equals("popular")) {
+                        if (usr.getCategory().equals("PREMIUM")) {
+                            output = usr.getPopular(extractedMovies, extractedSerialsSeason, extractedUsers);
+                        }
+                    } else if (type.equals("favorite")) {
+                        if (usr.getCategory().equals("PREMIUM")) {
+                            System.out.println(filePath1);
+                            System.out.println(actId);
+                            output = usr.getRecFav(extractedMovies, extractedSerialsSeason, extractedUsers);
+                            System.out.println(output);
+                        }
                     }
 
                     if (output != null) {
