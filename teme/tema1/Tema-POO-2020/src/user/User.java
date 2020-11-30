@@ -1,14 +1,10 @@
 package user;
 
-import com.fasterxml.jackson.databind.cfg.MutableConfigOverride;
-import com.fasterxml.jackson.databind.ser.impl.UnknownSerializer;
 import entertainment.Genre;
-import entertainment.Season;
 import video.Movie;
 import video.SeasonModel;
 import video.SerialSeason;
 
-import java.rmi.MarshalledObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -20,69 +16,78 @@ public class User {
     private final Map<String, Integer> viewed;
     private int noRating;
 
-    public User(final String username, final String category, final ArrayList<String> favorite, final Map<String, Integer> viewed){
-        this.username = username;
-        this.category = category;
-        this.favorite = favorite;
-        this.viewed = viewed;
+    public User(final String un, final String ct, final ArrayList<String> fav, final Map<String, Integer> v) {
+        this.username = un;
+        this.category = ct;
+        this.favorite = fav;
+        this.viewed = v;
         this.noRating = 0;
     }
 
-    public String getUsername() {
+
+    public final String getUsername() {
         return this.username;
     }
 
-    public String getCategory() {
+    public final String getCategory() {
         return this.category;
     }
 
-    public ArrayList<String> getFavorite() {
+    public final ArrayList<String> getFavorite() {
         return this.favorite;
     }
 
-    public Map<String, Integer> getViewed() {
+    public final Map<String, Integer> getViewed() {
         return this.viewed;
     }
 
-    public int getNoRating() { return this.noRating; }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "username='" + this.username + '\'' +
-                '}';
+    public final int getNoRating() {
+        return this.noRating;
     }
 
-    public static ArrayList<User> sortMoviesWithValues(ArrayList<User> users, int[] values, String SortType) {
-        ArrayList<User> sortedUsers = users;
-        int len = sortedUsers.size();
-        int aux;
+    @Override
+    public final String toString() {
+        return "User{" + "username='" + this.username + '\'' + '}';
+    }
 
-        if (SortType.equals("asc")) {
-            for (int i = 0 ; i < len - 1 ; i++) {
-                for (int j = i + 1 ; j < len ; j++) {
-                    if (values[i] > values[j]) {
-                        aux = values[i];
-                        values[i] = values[j];
-                        values[j] = aux;
+    /**
+     * Parcurgem lista de valori si sortam in functie de acestea si numele utilizatorilor
+     * @param u - lista de useri
+     * @param v - lista cu numerele de actiuni de rating ale fiecarui user
+     * @param sT - tipul de sortare
+     * @return - Metoda returneaza un vector de utilizatori
+     */
+    public static ArrayList<User> srtMWV(final ArrayList<User> u, final ArrayList<Integer> v, final String sT) {
+        ArrayList<User> sortedUsers = u;
+        int len = sortedUsers.size();
+
+        String username1;
+        String username2;
+        if (sT.equals("asc")) {
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = i + 1; j < len; j++) {
+                    if (v.get(i).intValue() > v.get(j).intValue()) {
+                        Collections.swap(v, i, j);
                         Collections.swap(sortedUsers, i, j);
-                    } else if (values[i] == values[j]) {
-                        if (sortedUsers.get(i).getUsername().compareTo(sortedUsers.get(j).getUsername()) > 0) {
+                    } else if (v.get(i).intValue() == v.get(j).intValue()) {
+                        username1 = sortedUsers.get(i).getUsername();
+                        username2 = sortedUsers.get(j).getUsername();
+                        if (username1.compareTo(username2) > 0) {
                             Collections.swap(sortedUsers, i, j);
                         }
                     }
                 }
             }
-        } else if (SortType.equals("desc")) {
-            for (int i = 0 ; i < len - 1 ; i++) {
-                for (int j = i + 1 ; j < len ; j++) {
-                    if (values[i] < values[j]) {
-                        aux = values[i];
-                        values[i] = values[j];
-                        values[j] = aux;
+        } else if (sT.equals("desc")) {
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = i + 1; j < len; j++) {
+                    if (v.get(i).intValue() < v.get(j).intValue()) {
+                        Collections.swap(v, i, j);
                         Collections.swap(sortedUsers, i, j);
-                    } else if (values[i] == values[j]) {
-                        if (sortedUsers.get(i).getUsername().compareTo(sortedUsers.get(j).getUsername()) < 0) {
+                    } else if (v.get(i).intValue() == v.get(j).intValue()) {
+                        username1 = sortedUsers.get(i).getUsername();
+                        username2 = sortedUsers.get(j).getUsername();
+                        if (username1.compareTo(username2) < 0) {
                             Collections.swap(sortedUsers, i, j);
                         }
                     }
@@ -93,7 +98,12 @@ public class User {
         return sortedUsers;
     }
 
-    public static String getRezStr(ArrayList<User> sortedUsers) {
+    /**
+     * Creeam un StringBuilder in care concatenam o parte de inceput, numele utilizatorilor si partea de final
+     * @param sortedUsers - lista de useri sortati
+     * @return - Metoda returneaza un String reprezentand raspunsul final
+     */
+    public static String getRezStr(final ArrayList<User> sortedUsers) {
         StringBuilder str = new StringBuilder();
         str.append("Query result: [");
 
@@ -108,7 +118,12 @@ public class User {
         return str.toString();
     }
 
-    public String setFavorite(String video) {
+    /**
+     * Adauga titlul videoului dat ca parametru in lista de favorite, verficand daca acesta a fost vizualizat si daca este deja continut
+     * @param video - titlul videoului dat
+     * @return - Metoda returneaza raspunsul final concatenand titlul videoului cu un text dat
+     */
+    public final String setFavorite(final String video) {
         if (!this.viewed.isEmpty()) {
             if (this.viewed.containsKey(video)) {
                 if (this.favorite.indexOf(video) == -1) {
@@ -122,21 +137,36 @@ public class User {
         return "error -> " + video + " is not seen";
     }
 
-    public String setView(String video) {
+    /**
+     * Metoda adauga titlul videoclipului in Map, actualizand numarul de vizualizari. Verifica daca acesta a fost vizualizat anterior.
+     * @param video - titlul videoului dat
+     * @return - Metoda returneaza raspunsul final concatenand titlul videoului cu un text dat
+     */
+    public final String setView(final String video) {
+        String text = " was viewed with total views of ";
         if (this.viewed.containsKey(video)) {
             this.viewed.put(video, this.viewed.get(video) + 1);
-            return "success -> "+ video +" was viewed with total views of " + this.viewed.get(video);
+            return "success -> " + video + text + this.viewed.get(video);
         } else {
             this.viewed.put(video, 1);
-            return "success -> "+ video +" was viewed with total views of 1";
+            return "success -> " + video + text + "1";
         }
     }
 
-    public String setRating(ArrayList<Movie> movies, ArrayList<SerialSeason> serials, String video, double grade, int seasonNumber) {
+    /**
+     * Metoda verifica daca video dat este film sau serial si daca utilizatorul a mai dat rating acestui video. Aceasta adauga ratingul in lista de ratinguri si usernameul in alta lista si se incrementeaza numarul de ratinguri date.
+     * @param movies - filemele din baza de date
+     * @param serials - serialele din baza de date
+     * @param video - titlul videoului care primeste rating
+     * @param grade - valoarea ratingului dat
+     * @param seasonNumber - numarul sezonului caruia i se aplica ratingul
+     * @return Metoda returneaza rezultatul final reprezentand ratingul oferit de un anumit utilizator la un anumit video
+     */
+    public final String setRating(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final String video, final double grade, final int seasonNumber) {
         if (this.viewed.containsKey(video)) {
             Movie movie = null;
             for (Movie v : movies) {
-                if (v.getTitle().equals(video) == true) {
+                if (v.getTitle().equals(video)) {
                     movie = v;
                     break;
                 }
@@ -146,14 +176,15 @@ public class User {
                 if (movie.getuserName().indexOf(this.username) == -1) {
                     movie.setRating(grade, this.username);
                     this.noRating++;
-                    return "success -> " + video + " was rated with " + grade + " by " + this.username;
+                    String text = video + " was rated with " + grade + " by " + this.username;
+                    return "success -> " + text;
                 } else {
                     return "error -> " + video + " has been already rated";
                 }
             } else {
                 SeasonModel ser = null;
                 for (SerialSeason s : serials) {
-                    if (s.getTitle().equals(video) == true) {
+                    if (s.getTitle().equals(video)) {
                         ser = s.getSeasons().get(seasonNumber - 1);
                         break;
                     }
@@ -163,7 +194,8 @@ public class User {
                     if (ser.getUserName().indexOf(this.username) == -1) {
                         ser.setRating(grade, this.username);
                         this.noRating++;
-                        return "success -> " + video + " was rated with " + grade + " by " + this.username;
+                        String text = video + " was rated with " + grade + " by " + this.username;
+                        return "success -> " + text;
                     } else {
                         return "error -> " + video + " has been already rated";
                     }
@@ -173,38 +205,52 @@ public class User {
         return "error -> " + video + " is not seen";
     }
 
-    public static String getNumOfRat(int N, ArrayList<User> users, String SortType) {
+    /**
+     * Metoda adauga utilizatorii cu numarul de ratinguri dat intr-o lista si valorile acestora in alta. Listele sunt sortate in functie de tipul sortarii. Se extrag primii N utilizatori si se afiseaza.
+     * @param n - numarul de useri ceruti
+     * @param usr - lista de useri din baza de date
+     * @param srtType - tipul sortarii utilizatorilor
+     * @return - Metoda returneaza un string reprezentand primii N utilizatori sortati dupa numarul de ratinguri date
+     */
+    public static String getNumOfRat(final int n, final ArrayList<User> usr, final String srtType) {
         ArrayList<User> sortedUsers = new ArrayList<>();
+        ArrayList<Integer> noRatUser = new ArrayList<>();
 
-        int[] noRatUser = new int[users.size()];
         int len = 0;
 
-        for (User u:users) {
+        for (User u:usr) {
             if (u.getNoRating() != 0) {
                 sortedUsers.add(u);
-                noRatUser[len] = u.getNoRating();
-                len++;
+                noRatUser.add(u.getNoRating());
             }
         }
 
-        sortedUsers = User.sortMoviesWithValues(sortedUsers, noRatUser, SortType);
+        len = noRatUser.size();
 
-        if (len > N) {
-            sortedUsers.subList(N, len).clear();
+        sortedUsers = User.srtMWV(sortedUsers, noRatUser, srtType);
+
+        if (len > n) {
+            sortedUsers.subList(n, len).clear();
         }
 
         return User.getRezStr(sortedUsers);
     }
 
-    public String getStandard(ArrayList<Movie> movies, ArrayList<SerialSeason> serials) {
-        for (Movie m:movies) {
-            if (this.viewed.containsKey(m.getTitle()) == false) {
+    /**
+     * Parcurge lista de filme/seriale din baza de date si returneaza primul fim gasit nevizionat.
+     * @param mov - lista filmelor din baza de date
+     * @param ser - lista serialelor din baza de date
+     * @return Metoda returneaza primul video nevizionat de un anumit user din baza de date
+     */
+    public final String getStandard(final ArrayList<Movie> mov, final ArrayList<SerialSeason> ser) {
+        for (Movie m:mov) {
+            if (!this.viewed.containsKey(m.getTitle())) {
                 return "StandardRecommendation result: " + m.getTitle();
             }
         }
 
-        for (SerialSeason s:serials) {
-            if (this.viewed.containsKey(s.getTitle()) == false) {
+        for (SerialSeason s:ser) {
+            if (!this.viewed.containsKey(s.getTitle())) {
                 return "StandardRecommendation result: " + s.getTitle();
             }
         }
@@ -212,23 +258,29 @@ public class User {
         return "StandardRecommendation cannot be applied!";
     }
 
-    public String getBestUnseen(ArrayList<Movie> movies, ArrayList<SerialSeason> serials) {
+    /**
+     * Adaugam intr-o lista filemele/serialele si valorile ratingurilor acestor, sortam listele descrescator in functie de valori si le parcurgem. Afisam prima valoare gasita.
+     * @param mov - lista de filme din baza de date
+     * @param ser - lista de seriale din baza de date
+     * @return - Metoda returneaza primul videoclip nevizualizat de utilizator, videourile fiind ordonate descrescator dupa rating al doilea criteriu fiind pozitia in lista sa din baza de date
+     */
+    public final String getBestUn(final ArrayList<Movie> mov, final ArrayList<SerialSeason> ser) {
         ArrayList<Movie> sortedMovies = new ArrayList<>();
-        double[] movRatings = new double[movies.size()];
-        int[] pozMov = new int[movies.size()];
+        double[] movRatings = new double[mov.size()];
+        int[] pozMov = new int[mov.size()];
         int lenMov = 0;
         int auxpoz;
         double aux;
 
-        for (Movie m : movies) {
+        for (Movie m : mov) {
             sortedMovies.add(m);
             pozMov[lenMov] = lenMov;
             movRatings[lenMov] = m.getValueRating();
             lenMov++;
         }
 
-        for (int i = 0 ; i < lenMov - 1 ; i++) {
-            for (int j = i + 1 ; j < lenMov ; j++) {
+        for (int i = 0; i < lenMov - 1; i++) {
+            for (int j = i + 1; j < lenMov; j++) {
                 if (movRatings[i] < movRatings[j]) {
                    aux = movRatings[i];
                    movRatings[i] = movRatings[j];
@@ -252,25 +304,25 @@ public class User {
         }
 
         for (Movie m : sortedMovies) {
-            if (this.viewed.containsKey(m.getTitle()) == false) {
+            if (!this.viewed.containsKey(m.getTitle())) {
                 return "BestRatedUnseenRecommendation result: " + m.getTitle();
             }
         }
 
         ArrayList<SerialSeason> sortedSerials = new ArrayList<>();
-        double[] serRatings = new double[serials.size()];
-        int[] pozSerial = new int[serials.size()];
+        double[] serRatings = new double[ser.size()];
+        int[] pozSerial = new int[ser.size()];
         int lenSer = 0;
 
-        for (SerialSeason s : serials) {
+        for (SerialSeason s : ser) {
             sortedSerials.add(s);
             pozSerial[lenSer] = lenSer;
             serRatings[lenSer] = s.getValueRatingSerial();
             lenSer++;
         }
 
-        for (int i = 0 ; i < lenSer - 1 ; i++) {
-            for (int j = i + 1 ; j < lenSer ; j++) {
+        for (int i = 0; i < lenSer - 1; i++) {
+            for (int j = i + 1; j < lenSer; j++) {
                 if (serRatings[i] < serRatings[j]) {
                     aux = serRatings[i];
                     serRatings[i] = serRatings[j];
@@ -294,7 +346,7 @@ public class User {
         }
 
         for (SerialSeason s : sortedSerials) {
-            if (this.viewed.containsKey(s.getTitle()) == false) {
+            if (!this.viewed.containsKey(s.getTitle())) {
                 return "BestRatedUnseenRecommendation result: " + s.getTitle();
             }
         }
@@ -302,7 +354,12 @@ public class User {
         return "BestRatedUnseenRecommendation cannot be applied!";
     }
 
-    public Genre convStrToGenre(String value) {
+    /**
+     *
+     * @param value - valoarea Stringului
+     * @return Metoda converteste un String la tipul enumeratiei Genre
+     */
+    public final Genre convStrToGenre(final String value) {
         StringBuilder chGen = new StringBuilder(value.toUpperCase());
         int poz = chGen.indexOf("&");
         if (poz != -1) {
@@ -327,7 +384,13 @@ public class User {
         return Genre.valueOf(chGen.toString());
     }
 
-    public String getPopular(ArrayList<Movie> movies, ArrayList<SerialSeason> serials, ArrayList<User> users) {
+    /**
+     *
+     * @param movies
+     * @param serials
+     * @param users
+     */
+    public final String getPopular(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final ArrayList<User> users) {
         ArrayList<Genre> sortedGenres = new ArrayList<>();
 
         int[] noView = new int[Genre.values().length];
@@ -340,7 +403,7 @@ public class User {
             for (Movie m : movies) {
                 ArrayList<String> movGen = m.getGenres();
 
-                for(String gen : movGen) {
+                for (String gen : movGen) {
                     if (g.equals(convStrToGenre(gen))) {
                         for (User u : users) {
                             if (u.getViewed().containsKey(m.getTitle())) {
@@ -355,7 +418,7 @@ public class User {
             for (SerialSeason s : serials) {
                 ArrayList<String> movSer = s.getGenres();
 
-                for(String gen : movSer) {
+                for (String gen : movSer) {
                     if (g.equals(convStrToGenre(gen))) {
                         for (User u : users) {
                             if (u.getViewed().containsKey(s.getTitle())) {
@@ -371,8 +434,8 @@ public class User {
             len++;
         }
 
-        for (int i = 0 ; i < len - 1 ; i++) {
-            for (int j = i + 1 ; j < len ; j++) {
+        for (int i = 0; i < len - 1; i++) {
+            for (int j = i + 1; j < len; j++) {
                 if (noView[i] < noView[j]) {
                     aux = noView[i];
                     noView[i] = noView[j];
@@ -413,7 +476,7 @@ public class User {
         return "PopularRecommendation cannot be applied!";
     }
 
-    public String getRecFav(ArrayList<Movie> movies, ArrayList<SerialSeason> serials, ArrayList<User> users) {
+    public final String getRecFav(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final ArrayList<User> users) {
         ArrayList<String> videos = new ArrayList<>();
         int[] noFav = new int[movies.size() + serials.size()];
         int[] poz = new int[movies.size() + serials.size()];
@@ -421,42 +484,46 @@ public class User {
         int num;
 
         for (Movie m : movies) {
-            num = 0;
+            if (!this.viewed.containsKey(m.getTitle())) {
+                num = 0;
 
-            for (User u : users) {
-                if (u.getFavorite().indexOf(m.getTitle()) != -1) {
-                    num++;
+                for (User u : users) {
+                    if (u.getFavorite().indexOf(m.getTitle()) != -1) {
+                        num++;
+                    }
                 }
-            }
 
-            if (num != 0) {
-                poz[len] = len;
-                noFav[len] = num;
-                videos.add(m.getTitle());
-                len++;
+                if (num != 0) {
+                    poz[len] = len;
+                    noFav[len] = num;
+                    videos.add(m.getTitle());
+                    len++;
+                }
             }
         }
 
         for (SerialSeason s : serials) {
-            num = 0;
+            if (!this.viewed.containsKey(s.getTitle())) {
+                num = 0;
 
-            for (User u : users) {
-                if (u.getFavorite().indexOf(s.getTitle()) != -1) {
-                    num++;
+                for (User u : users) {
+                    if (u.getFavorite().indexOf(s.getTitle()) != -1) {
+                        num++;
+                    }
                 }
-            }
 
-            if (num != 0) {
-                poz[len] = len;
-                noFav[len] = num;
-                videos.add(s.getTitle());
-                len++;
+                if (num != 0) {
+                    poz[len] = len;
+                    noFav[len] = num;
+                    videos.add(s.getTitle());
+                    len++;
+                }
             }
         }
 
         int aux;
-        for (int i = 0 ; i < len - 1 ; i++) {
-            for (int  j = 0 ; j < len ; j++) {
+        for (int i = 0; i < len - 1; i++) {
+            for (int  j = i + 1; j < len; j++) {
                 if (noFav[i] < noFav[j]) {
                     aux = noFav[i];
                     noFav[i] = noFav[j];
@@ -480,11 +547,79 @@ public class User {
         }
 
         for (String s:videos) {
-            if (!this.viewed.containsKey(s)) {
-                return "FavoriteRecommendation result: " + s;
-            }
+            return "FavoriteRecommendation result: " + s;
         }
 
         return "FavoriteRecommendation cannot be applied!";
+    }
+
+    public final String getSearch(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final String gen) {
+        ArrayList<String> videos = new ArrayList<>();
+        double[] ratings = new double[movies.size() + serials.size()];
+        int len = 0;
+        double aux;
+
+        for (Movie m : movies) {
+            if (!this.viewed.containsKey(m.getTitle())) {
+                ArrayList<String> movGen = m.getGenres();
+
+                for (String g : movGen) {
+                    if (gen.equals(g)) {
+                        videos.add(m.getTitle());
+                        ratings[len] = m.getValueRating();
+                        len++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (SerialSeason s : serials) {
+            if (!this.viewed.containsKey(s.getTitle())) {
+                ArrayList<String> movSer = s.getGenres();
+
+                for (String g : movSer) {
+                    if (gen.equals(g)) {
+                        videos.add(s.getTitle());
+                        ratings[len] = s.getValueRatingSerial();
+                        len++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < len - 1; i++) {
+            for (int j = i + 1; j < len; j++) {
+                if (ratings[i] > ratings[j]) {
+                   aux = ratings[i];
+                   ratings[i] = ratings[j];
+                   ratings[j] = aux;
+
+                   Collections.swap(videos, i, j);
+                } else if (ratings[i] == ratings[j]) {
+                    if (videos.get(i).compareTo(videos.get(j)) > 0) {
+                        Collections.swap(videos, i, j);
+                    }
+                }
+            }
+        }
+
+        if (len != 0) {
+            StringBuilder str = new StringBuilder();
+            str.append("SearchRecommendation result: [");
+
+            if (videos.size() != 0) {
+                for (String s : videos) {
+                    str.append(s).append(", ");
+                }
+                str.delete(str.length() - 2, str.length());
+            }
+
+            str.append("]");
+            return str.toString();
+        }
+
+        return "SearchRecommendation cannot be applied!";
     }
 }

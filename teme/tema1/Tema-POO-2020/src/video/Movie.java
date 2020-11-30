@@ -44,11 +44,10 @@ public class Movie extends Video {
         }
 
         if (nr == 0) {
-            return 0;
+            return 0.0;
         }
 
-        val /= nr;
-        return val;
+        return val / nr;
     }
 
     public static ArrayList<Movie> sortMoviesWithValues(ArrayList<Movie> movies, double[] values, String SortType) {

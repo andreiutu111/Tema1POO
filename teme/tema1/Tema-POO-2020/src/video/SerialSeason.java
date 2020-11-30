@@ -41,8 +41,9 @@ public class SerialSeason extends Video{
             }
 
             if (seznr != 0) {
-                sezval /= seznr;
-                val += sezval;
+                val += sezval / seznr;
+                nr++;
+            } else {
                 nr++;
             }
         }

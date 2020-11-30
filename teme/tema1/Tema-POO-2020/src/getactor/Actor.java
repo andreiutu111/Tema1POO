@@ -41,47 +41,38 @@ public class Actor {
 
     private static double getMed (ArrayList<String> film, ArrayList<Movie> movies, ArrayList<SerialSeason> ser) {
         double rez = 0;
-        double rezsez = 0;
         int nr = 0;
-
-        List<Double> rats;
+        boolean ok;
 
         for (String f : film) {
+            ok = false;
+
             for (Movie m : movies) {
                 if (m.getTitle().equals(f)) {
-                    rez = m.getValueRating();
+                    if (m.getValueRating() != 0) {
+                        rez += m.getValueRating();
+                        nr++;
+                    }
+
+                    ok = true;
                     break;
                 }
             }
 
-            if (rez == 0.0) {
+            if (!ok) {
                 for (SerialSeason s : ser) {
                     if (s.getTitle().equals(f)) {
-                        ArrayList<SeasonModel> seasonsSerial = s.getSeasons();
-
-                        for (SeasonModel sez : seasonsSerial) {
-                            rats = sez.getRating();
-                            rezsez = 0;
-                            nr = 0;
-
-                            for (Double num : rats) {
-                                    rezsez += num.doubleValue();
-                                    nr++;
-                            }
-
-                            if (nr != 0) {
-                                rez += rezsez / nr;
-                            }
+                        if (s.getValueRatingSerial() != 0) {
+                            rez += s.getValueRatingSerial();
+                            nr++;
                         }
-
-                        rez /= s.getNo();
                         break;
                     }
                 }
             }
         }
 
-        return rez;
+        return rez / nr;
     }
 
     public static String getAverage(int N, ArrayList<Actor> actors, ArrayList<Movie> movies, ArrayList<SerialSeason> seasons, String sortType) {
