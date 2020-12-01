@@ -6,25 +6,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SerialSeason extends Video{
+public class SerialSeason extends Video {
     private final int no;
     private final ArrayList<SeasonModel> seasons;
 
-    public SerialSeason(final String title, final int year, final ArrayList<String> genres, final ArrayList<String> cast, final int no, final ArrayList<SeasonModel> seas) {
+    public SerialSeason(final String title, final int year, final ArrayList<String> genres,
+                        final ArrayList<String> cast, final int no,
+                        final ArrayList<SeasonModel> seas) {
         super(title, year, genres, cast);
         this.no = no;
         this.seasons = seas;
     }
 
-    public int getNo() {
+    public final int getNo() {
         return this.no;
     }
 
-    public ArrayList<SeasonModel> getSeasons() {
+    public final ArrayList<SeasonModel> getSeasons() {
         return this.seasons;
     }
 
-    public double getValueRatingSerial() {
+    /**
+     * Functia calculeaza ratingul fiecarui sezon dupa care ratingul serialului.
+     * @return Returneaza ratingul unui serial
+     */
+    public final double getValueRatingSerial() {
         double val = 0;
         int nr = 0;
 
@@ -55,7 +61,11 @@ public class SerialSeason extends Video{
         return val / nr;
     }
 
-    public int getValueDurationSerial() {
+    /**
+     * Metoda aduna durata tuturor sezoanelor unui serial
+     * @return Returneaza durata unui serial
+     */
+    public final int getValueDurationSerial() {
         int duration = 0;
 
         for (SeasonModel s:seasons) {
@@ -65,12 +75,23 @@ public class SerialSeason extends Video{
         return duration;
     }
 
-    public static int checkYearAndGenre(List <String> year, List <String> genre, SerialSeason s) {
+    /**
+     * - Metoda parcurge lista de ani si verifica daca
+     * cel mult unul din acestia este egal cu anul serialului.
+     * - Aceasta face acelasi lucru si pentru lista de genuri
+     * dupa care returneaza ce caracteristici sunt valide.
+     * @param ye - lista de ani din filtre
+     * @param ge - lista de genuri din filtre
+     * @param s - serialul care sse verifica
+     * @return Returneaza daca anii si/sau genurile sunt date
+     * in filtrele din baza de date si daca serialul are aceste caracteristici
+     */
+    public static int checkYAG(final List<String> ye, final List<String> ge, final SerialSeason s) {
         boolean ok1 = false;
         boolean ok2 = false;
 
-        if (year.get(0) != null) {
-            for (String y:year) {
+        if (ye.get(0) != null) {
+            for (String y:ye) {
                 if (Integer.toString(s.getYear()).equals(y)) {
                     ok1 = true;
                     break;
@@ -78,10 +99,10 @@ public class SerialSeason extends Video{
             }
         }
 
-        if (genre.get(0) != null) {
+        if (ge.get(0) != null) {
             List<String> movieGen = s.getGenres();
 
-            String gen = genre.get(0);
+            String gen = ge.get(0);
             for (String mg:movieGen) {
                 if (mg.equals(gen)) {
                     ok2 = true;
@@ -90,47 +111,64 @@ public class SerialSeason extends Video{
             }
         }
 
-        if (ok1 == true && ok2 == false) {
+        if (ok1 && !ok2) {
             return 1;
-        } else if (ok1 == false && ok2 == true) {
+        } else if (!ok1 && ok2) {
             return 2;
-        } else if (ok1 == true && ok2 == true) {
-            return 3;
+        } else if (ok1 && ok2) {
+            return -1;
         }
 
         return 0;
     }
 
-    public static ArrayList<SerialSeason> sortSerialsWithValues(ArrayList<SerialSeason> serials, double[] values, String SortType) {
+    /**
+     * - Functia sorteaza o lista de seriale dupa valorile din vectorul
+     * dat ca parametru in functie de tipul sortarii
+     * @param serials - lista de seriale din baza de date
+     * @param values - lista de valori care se sorteaza
+     * @param sortType - tipul sortarii
+     * @return Returneaza o lista de seriale sortate corespunzator
+     */
+    public static ArrayList<SerialSeason>
+    sortSerialsWithValues(final ArrayList<SerialSeason> serials,
+                          final double[] values,
+                          final String sortType) {
         ArrayList<SerialSeason> sortedSerials = serials;
         int len = sortedSerials.size();
         double aux;
 
-        if (SortType.equals("asc")) {
-            for (int i = 0 ; i < len - 1 ; i++) {
-                for (int j = i + 1 ; j < len ; j++) {
+        String serialname1;
+        String serialname2;
+        if (sortType.equals("asc")) {
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = i + 1; j < len; j++) {
                     if (values[i] > values[j]) {
                         aux = values[i];
                         values[i] = values[j];
                         values[j] = aux;
                         Collections.swap(sortedSerials, i, j);
                     } else if (values[i] == values[j]) {
-                        if (sortedSerials.get(i).getTitle().compareTo(sortedSerials.get(j).getTitle()) > 0) {
+                        serialname1 = sortedSerials.get(i).getTitle();
+                        serialname2 = sortedSerials.get(j).getTitle();
+                        if (serialname1.compareTo(serialname2) > 0) {
                             Collections.swap(sortedSerials, i, j);
                         }
                     }
                 }
             }
-        } else if (SortType.equals("desc")) {
-            for (int i = 0 ; i < len - 1 ; i++) {
-                for (int j = i + 1 ; j < len ; j++) {
+        } else if (sortType.equals("desc")) {
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = i + 1; j < len; j++) {
                     if (values[i] < values[j]) {
                         aux = values[i];
                         values[i] = values[j];
                         values[j] = aux;
                         Collections.swap(sortedSerials, i, j);
                     } else if (values[i] == values[j]) {
-                        if (sortedSerials.get(i).getTitle().compareTo(sortedSerials.get(j).getTitle()) < 0) {
+                        serialname1 = sortedSerials.get(i).getTitle();
+                        serialname2 = sortedSerials.get(j).getTitle();
+                        if (serialname1.compareTo(serialname2) < 0) {
                             Collections.swap(sortedSerials, i, j);
                         }
                     }
@@ -141,7 +179,12 @@ public class SerialSeason extends Video{
         return sortedSerials;
     }
 
-    public static String getRezStr(ArrayList<SerialSeason> sortSerials) {
+    /**
+     * Metoda creeaza un string la care se lipesc numele serialelor care sunt primite ca parametru.
+     * @param sortSerials
+     * @return Returneaza un string rezultat
+     */
+    public static String getRezStr(final ArrayList<SerialSeason> sortSerials) {
         StringBuilder str = new StringBuilder();
         str.append("Query result: [");
 
@@ -156,7 +199,21 @@ public class SerialSeason extends Video{
         return str.toString();
     }
 
-    public static String getRatSerial(int N, List<String> year, List<String> genre, ArrayList<SerialSeason> serials, String SortType) {
+    /**
+     * - Metoda parcurge lista de seriale si verifica care sunt caracteristicile (an si gen)
+     * dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata, scurtata daca este nevoie si este afisata,
+     * cu ajutorul functiilor de mai sus.
+     * @param n - numarul de seriale cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param serials - lista serialelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n seriale sortate dupa rating
+     */
+    public static String
+    getRatSerial(final int n, final List<String> year, final List<String> genre,
+                 final ArrayList<SerialSeason> serials, final String sortType) {
         ArrayList<SerialSeason> sortSerials = new ArrayList<>();
         double[] sortVal = new double[serials.size()];
         int len = 0;
@@ -164,15 +221,15 @@ public class SerialSeason extends Video{
         double rating;
         int ok;
 
-        for (SerialSeason s:serials) {
+        for (SerialSeason s : serials) {
             rating = s.getValueRatingSerial();
 
-            ok = checkYearAndGenre(year, genre, s);
+            ok = checkYAG(year, genre, s);
 
             if (rating != 0.0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             sortVal[len] = rating;
                             sortSerials.add(s);
                             len++;
@@ -200,16 +257,32 @@ public class SerialSeason extends Video{
             }
         }
 
-        sortSerials = SerialSeason.sortSerialsWithValues(sortSerials, sortVal, SortType);
+        sortSerials = SerialSeason.sortSerialsWithValues(sortSerials, sortVal, sortType);
 
-        if (len > N) {
-            sortSerials.subList(N, len).clear();
+        if (len > n) {
+            sortSerials.subList(n, len).clear();
         }
 
         return SerialSeason.getRezStr(sortSerials);
     }
 
-    public static String getFavSerials(int N, List<String> year, List<String> genre, ArrayList<SerialSeason> serials, ArrayList<User> users, String sortType) {
+    /**
+     * - Metoda parcurge lista de seriale, calculeaza numarul de aparente
+     * in lista de favorite si verifica (an si gen)
+     * care sunt caracteristicile dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata dupa numarul de aparente si este afisata,
+     * cu ajutorul functiilor de mai sus.
+     * @param n - numarul de seriale cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param serials - lista serialelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n seriale sortate dupa nr de aparitii in listele de favorite
+     */
+    public static String getFavSerials(final int n, final List<String> year,
+                                       final List<String> genre,
+                                       final ArrayList<SerialSeason> serials,
+                                       final ArrayList<User> users, final String sortType) {
         ArrayList<SerialSeason> sortedSerials = new ArrayList<>();
         double[] noApp = new double[serials.size()];
         int len = 0;
@@ -225,12 +298,12 @@ public class SerialSeason extends Video{
                 }
             }
 
-            ok = checkYearAndGenre(year, genre, s);
+            ok = checkYAG(year, genre, s);
 
             if (no != 0.0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             noApp[len] = no;
                             sortedSerials.add(s);
                             len++;
@@ -258,16 +331,32 @@ public class SerialSeason extends Video{
             }
         }
 
+
         sortedSerials = SerialSeason.sortSerialsWithValues(sortedSerials, noApp, sortType);
 
-        if (len > N) {
-            sortedSerials.subList(N, len).clear();
+        if (len > n) {
+            sortedSerials.subList(n, len).clear();
         }
 
         return SerialSeason.getRezStr(sortedSerials);
     }
 
-    public static String getLongestSerial(int N, List<String> year, List<String> genre, ArrayList<SerialSeason> serials, String sortType) {
+    /**
+     * - Metoda parcurge lista de seriale, ia durata serialului
+     * si verifica care sunt caracteristicile (an si gen)
+     * dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata dupa durate si este afisata, cu ajutorul functiilor de mai sus.
+     * @param n - numarul de seriale cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param serials - lista serialelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n seriale sortate dupa durata lor
+     */
+    public static String getLongestSerial(final int n, final List<String> year,
+                                          final List<String> genre,
+                                          final ArrayList<SerialSeason> serials,
+                                          final String sortType) {
         ArrayList<SerialSeason> sortedSerials = new ArrayList<>();
         double[] dur = new double[serials.size()];
         int ok;
@@ -275,14 +364,14 @@ public class SerialSeason extends Video{
         int duration;
 
         for (SerialSeason s:serials) {
-            ok = checkYearAndGenre(year, genre, s);
+            ok = checkYAG(year, genre, s);
 
             duration = s.getValueDurationSerial();
 
             if (duration != 0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             dur[len] = duration * 1.0;
                             sortedSerials.add(s);
                             len++;
@@ -312,14 +401,30 @@ public class SerialSeason extends Video{
 
         sortedSerials = SerialSeason.sortSerialsWithValues(sortedSerials, dur, sortType);
 
-        if (len > N) {
-            sortedSerials.subList(N, len).clear();
+        if (len > n) {
+            sortedSerials.subList(n, len).clear();
         }
 
         return SerialSeason.getRezStr(sortedSerials);
     }
 
-    public static String getMostViewedSerial(int N, List<String> year, List<String> genre, ArrayList<SerialSeason> serials, ArrayList<User> users, String sortType) {
+    /**
+     * - Metoda parcurge lista de seriale, retine numarul de vizualizari
+     * si verifica care sunt caracteristicile (an si gen)
+     * dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata dupa numarul de vizualizari si este afisata,
+     * cu ajutorul functiilor de mai sus.
+     * @param n - numarul de seriale cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param serials - lista serialelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n seriale sortate dupa numarul de vizualizari
+     */
+    public static String getMostViewedSerial(final int n, final List<String> year,
+                                             final List<String> genre,
+                                             final ArrayList<SerialSeason> serials,
+                                             final ArrayList<User> users, final String sortType) {
         ArrayList<SerialSeason> sortedSerials = new ArrayList<>();
         double[] noView = new double[serials.size()];
         int len = 0;
@@ -334,12 +439,12 @@ public class SerialSeason extends Video{
                 }
             }
 
-            ok = checkYearAndGenre(year, genre, s);
+            ok = checkYAG(year, genre, s);
 
             if (no != 0.0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             noView[len] = no;
                             sortedSerials.add(s);
                             len++;
@@ -369,8 +474,8 @@ public class SerialSeason extends Video{
 
         sortedSerials = SerialSeason.sortSerialsWithValues(sortedSerials, noView, sortType);
 
-        if (len > N) {
-            sortedSerials.subList(N, len).clear();
+        if (len > n) {
+            sortedSerials.subList(n, len).clear();
         }
 
         return SerialSeason.getRezStr(sortedSerials);

@@ -5,7 +5,15 @@ import checker.Checkstyle;
 import checker.Checker;
 import common.Constants;
 import entertainment.Season;
-import fileio.*;
+import fileio.ActionInputData;
+import fileio.ActorInputData;
+import fileio.Input;
+import fileio.InputLoader;
+import fileio.MovieInputData;
+import fileio.SerialInputData;
+import fileio.UserInputData;
+import fileio.Writer;
+
 import getactor.Actor;
 import org.json.simple.JSONArray;
 import user.User;
@@ -79,61 +87,63 @@ public final class Main {
 
         //TODO add here the entry point to your implementation
         ArrayList<User> extractedUsers = new ArrayList<>();
-
         List<UserInputData> listUsers = input.getUsers();
         if (listUsers.size() > 0) {
             for (UserInputData u : listUsers) {
-                User extractNewUser = new User(u.getUsername(), u.getSubscriptionType(), u.getFavoriteMovies(), u.getHistory());
+                User extractNewUser = new User(u.getUsername(), u.getSubscriptionType(),
+                        u.getFavoriteMovies(), u.getHistory());
                 extractedUsers.add(extractNewUser);
             }
         }
 
-
         ArrayList<Movie> extractedMovies = new ArrayList<>();
-
         List<MovieInputData> listMovies = input.getMovies();
         if (listMovies.size() > 0) {
             for (MovieInputData m : listMovies) {
-                Movie extractNewMovie = new Movie(m.getTitle(), m.getYear(), m.getGenres(), m.getCast(), m.getDuration());
+                Movie extractNewMovie = new Movie(m.getTitle(), m.getYear(),
+                        m.getGenres(), m.getCast(), m.getDuration());
                 extractedMovies.add(extractNewMovie);
             }
         }
 
 
         ArrayList<SerialSeason> extractedSerialsSeason = new ArrayList<>();
-
         List<SerialInputData> listSerialsSeason = input.getSerials();
         if (listSerialsSeason.size() > 0) {
             for (SerialInputData s : listSerialsSeason) {
                 ArrayList<Season> seasonsSer = s.getSeasons();
                 ArrayList<SeasonModel> newseason = new ArrayList<>();
 
-                for (int i = 0 ; i < seasonsSer.size() ; i++) {
+                for (int i = 0; i < seasonsSer.size(); i++) {
                     SeasonModel seas = new SeasonModel(i, seasonsSer.get(i).getDuration());
                     newseason.add(seas);
                 }
 
-                SerialSeason extractNewSerials = new SerialSeason(s.getTitle(), s.getYear(), s.getGenres(), s.getCast(), s.getNumberSeason(), newseason);
+                SerialSeason extractNewSerials = new SerialSeason(s.getTitle(),
+                        s.getYear(), s.getGenres(),
+                        s.getCast(), s.getNumberSeason(), newseason);
                 extractedSerialsSeason.add(extractNewSerials);
             }
         }
 
         ArrayList<Actor> extractedActors = new ArrayList<>();
-
         List<ActorInputData> listActors = input.getActors();
         if (listActors.size() > 0) {
             for (ActorInputData a : listActors) {
-                Actor extractNewActor = new Actor(a.getName(), a.getCareerDescription(), a.getFilmography(), a.getAwards());
+                Actor extractNewActor = new Actor(a.getName(), a.getCareerDescription(),
+                        a.getFilmography(), a.getAwards());
                 extractedActors.add(extractNewActor);
             }
         }
 
         ArrayList<Action> extractedActions = new ArrayList<>();
-
         List<ActionInputData> listActions = input.getCommands();
         if (listActions.size() > 0) {
             for (ActionInputData a : listActions) {
-                Action extractNewAction = new Action(a.getSeasonNumber(), a.getGrade(), a.getTitle(), a.getUsername(), a.getObjectType(), a.getNumber(), a.getCriteria(), a.getSortType(), a.getGenre(), a.getActionType(), a.getActionId(), a.getFilters(), a.getType());
+                Action extractNewAction = new Action(a.getSeasonNumber(), a.getGrade(),
+                        a.getTitle(), a.getUsername(), a.getObjectType(), a.getNumber(),
+                        a.getCriteria(), a.getSortType(), a.getGenre(), a.getActionType(),
+                        a.getActionId(), a.getFilters(), a.getType());
                 extractedActions.add(extractNewAction);
             }
 
@@ -159,7 +169,8 @@ public final class Main {
                     } else if (subType.equals("favorite")) {
                         output = usr.setFavorite(title);
                     } else if (subType.equals("rating")) {
-                        output = usr.setRating(extractedMovies, extractedSerialsSeason, title, extractedAction.getGrade(), extractedAction.getSeasonNumber());
+                        output = usr.setRating(extractedMovies, extractedSerialsSeason, title,
+                                extractedAction.getGrade(), extractedAction.getSeasonNumber());
                     }
 
                     if (output != null) {
@@ -171,37 +182,64 @@ public final class Main {
                     String title = extractedAction.getTitle();
 
                     if (crit.equals("average")) {
-                        output = Actor.getAverage(extractedAction.getNumber(), extractedActors, extractedMovies, extractedSerialsSeason, sortType);
+                        output = Actor.getAverage(extractedAction.getNumber(), extractedActors,
+                                extractedMovies, extractedSerialsSeason, sortType);
                     } else if (crit.equals("awards")) {
-                        output = Actor.getAwaAct(extractedAction.getFilters().get(3), extractedActors, sortType);
+                        output = Actor.getAwaAct(extractedAction.getFilters().get(2 + 1),
+                                extractedActors, sortType);
                     } else if (crit.equals("filter_description")) {
-                        output = Actor.getFilterDescription(extractedAction.getFilters().get(2), extractedActors, sortType);
+                        output = Actor.getFilterDescription(extractedAction.getFilters().get(2),
+                                extractedActors, sortType);
                     } else if (crit.equals("ratings")) {
                         if (extractedAction.getObjectType().equals("movies")) {
-                            output = Movie.getRatMov(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, sortType);
+                            output = Movie.getRatMov(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1), extractedMovies, sortType);
                         } else if (extractedAction.getObjectType().equals("shows")) {
-                            output = SerialSeason.getRatSerial(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, sortType);
+                            output = SerialSeason.getRatSerial(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1),
+                                    extractedSerialsSeason, sortType);
                         }
                     } else if (crit.equals("favorite")) {
                         if (extractedAction.getObjectType().equals("movies")) {
-                            output = Movie.getFavMov(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, extractedUsers, sortType);
+                            output = Movie.getFavMov(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1),
+                                    extractedMovies, extractedUsers, sortType);
                         } else if (extractedAction.getObjectType().equals("shows")) {
-                            output = SerialSeason.getFavSerials(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, extractedUsers, sortType);
+                            output = SerialSeason.getFavSerials(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1),
+                                    extractedSerialsSeason, extractedUsers, sortType);
                         }
                     } else if (crit.equals("longest")) {
                         if (extractedAction.getObjectType().equals("movies")) {
-                            output = Movie.getLongestMovie(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, sortType);
+                            output = Movie.getLongestMovie(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1),
+                                    extractedMovies, sortType);
                         } else if (extractedAction.getObjectType().equals("shows")) {
-                            output = SerialSeason.getLongestSerial(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, sortType);
+                            output = SerialSeason.getLongestSerial(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1),
+                                    extractedSerialsSeason, sortType);
                         }
                     } else if (crit.equals("most_viewed")) {
                         if (extractedAction.getObjectType().equals("movies")) {
-                            output = Movie.getMostViewedMovie(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedMovies, extractedUsers, sortType);
+                            output = Movie.getMostViewedMovie(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1),
+                                    extractedMovies, extractedUsers, sortType);
                         } else if (extractedAction.getObjectType().equals("shows")) {
-                            output = SerialSeason.getMostViewedSerial(extractedAction.getNumber(), extractedAction.getFilters().get(0), extractedAction.getFilters().get(1), extractedSerialsSeason, extractedUsers, sortType);
+                            output = SerialSeason.getMostViewedSerial(extractedAction.getNumber(),
+                                    extractedAction.getFilters().get(0),
+                                    extractedAction.getFilters().get(1),
+                                    extractedSerialsSeason, extractedUsers, sortType);
                         }
                     } else if (crit.equals("num_ratings")) {
-                        output = User.getNumOfRat(extractedAction.getNumber(), extractedUsers, sortType);
+                        output = User.getNumOfRat(extractedAction.getNumber(),
+                                extractedUsers, sortType);
                     }
 
                     if (output != null) {
@@ -224,32 +262,34 @@ public final class Main {
                         output = usr.getBestUn(extractedMovies, extractedSerialsSeason);
                     } else if (type.equals("popular")) {
                         if (usr.getCategory().equals("PREMIUM")) {
-                            output = usr.getPopular(extractedMovies, extractedSerialsSeason, extractedUsers);
+                            output = usr.getPopular(extractedMovies,
+                                    extractedSerialsSeason, extractedUsers);
                         } else {
                             output = "PopularRecommendation cannot be applied!";
                         }
                     } else if (type.equals("favorite")) {
                         if (usr.getCategory().equals("PREMIUM")) {
-                            output = usr.getRecFav(extractedMovies, extractedSerialsSeason, extractedUsers);
+                            output = usr.getRecFav(extractedMovies,
+                                    extractedSerialsSeason, extractedUsers);
                         } else {
                             output = "FavoriteRecommendation cannot be applied!";
                         }
                     } else if (type.equals("search")) {
                         if (usr.getCategory().equals("PREMIUM")) {
-                            output = usr.getSearch(extractedMovies, extractedSerialsSeason, extractedAction.getGenre());
+                            output = usr.getSearch(extractedMovies,
+                                    extractedSerialsSeason, extractedAction.getGenre());
                         } else {
                             output = "SearchRecommendation cannot be applied!";
                         }
                     }
 
                     if (output != null) {
-                        arrayResult.add(fileWriter.writeFile(actId, extractedAction.getUsername(), output));
+                        arrayResult.add(fileWriter.writeFile(actId,
+                                extractedAction.getUsername(), output));
                     }
                 }
             }
         }
-
-        
 
         fileWriter.closeJSON(arrayResult);
     }

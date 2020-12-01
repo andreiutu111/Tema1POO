@@ -16,22 +16,25 @@ public class SeasonModel {
         this.userName = new ArrayList<>();
     }
 
-    public void setRating(double grade, String name) {
+    /**
+     * Metoda retine in liste ratingul si numele utilizatorului
+     * @param grade - ratingul dat
+     * @param name - numele utilizatorului
+     */
+    public final void setRating(final double grade, final String name) {
         this.ratings.add(grade);
         this.userName.add(name);
     }
 
-    public List<String> getUserName() { return userName; }
-
-    public int getCurrentSeason() {
-        return currentSeason;
+    public final List<String> getUserName() {
+        return userName;
     }
 
-    public int getDuration() {
+    public final int getDuration() {
         return duration;
     }
 
-    public List<Double> getRating() {
+    public final List<Double> getRating() {
         return ratings;
     }
 }

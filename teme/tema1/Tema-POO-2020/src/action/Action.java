@@ -18,7 +18,11 @@ public class Action {
     private final int seasonNumber;
     private final List<List<String>> filters = new ArrayList<>();
 
-    public Action(final int seasonNumber, final double grade, final String title, final String username, final String objectType, final int number, final String criteria, final String sortType, final String genre, final String actionType, final int actionId, final List<List<String>> filters, final String type) {
+    public Action(final int seasonNumber, final double grade, final String title,
+                  final String username, final String objectType, final int number,
+                  final String criteria, final String sortType, final String genre,
+                  final String actionType, final int actionId,
+                  final List<List<String>> filters, final String type) {
         this.seasonNumber = seasonNumber;
         this.grade = grade;
         this.title = title;
@@ -34,55 +38,55 @@ public class Action {
         this.type = type;
     }
 
-    public int getActionId() {
+    public final int getActionId() {
         return actionId;
     }
 
-    public String getActionType() {
+    public final String getActionType() {
         return actionType;
     }
 
-    public String getType() {
+    public final String getType() {
         return type;
     }
 
-    public String getUsername() {
+    public final String getUsername() {
         return username;
     }
 
-    public String getObjectType() {
+    public final String getObjectType() {
         return objectType;
     }
 
-    public String getSortType() {
+    public final String getSortType() {
         return sortType;
     }
 
-    public String getCriteria() {
+    public final String getCriteria() {
         return criteria;
     }
 
-    public String getTitle() {
+    public final String getTitle() {
         return title;
     }
 
-    public String getGenre() {
+    public final String getGenre() {
         return genre;
     }
 
-    public int getNumber() {
+    public final int getNumber() {
         return number;
     }
 
-    public double getGrade() {
+    public final double getGrade() {
         return grade;
     }
 
-    public int getSeasonNumber() {
+    public final int getSeasonNumber() {
         return seasonNumber;
     }
 
-    public List<List<String>> getFilters() {
+    public final List<List<String>> getFilters() {
         return filters;
     }
 }

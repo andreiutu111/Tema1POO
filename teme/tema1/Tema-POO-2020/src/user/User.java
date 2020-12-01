@@ -16,11 +16,12 @@ public class User {
     private final Map<String, Integer> viewed;
     private int noRating;
 
-    public User(final String un, final String ct, final ArrayList<String> fav, final Map<String, Integer> v) {
-        this.username = un;
-        this.category = ct;
-        this.favorite = fav;
-        this.viewed = v;
+    public User(final String username, final String category,
+                final ArrayList<String> favorite, final Map<String, Integer> viewed) {
+        this.username = username;
+        this.category = category;
+        this.favorite = favorite;
+        this.viewed = viewed;
         this.noRating = 0;
     }
 
@@ -52,24 +53,25 @@ public class User {
 
     /**
      * Parcurgem lista de valori si sortam in functie de acestea si numele utilizatorilor
-     * @param u - lista de useri
-     * @param v - lista cu numerele de actiuni de rating ale fiecarui user
-     * @param sT - tipul de sortare
+     * @param users - lista de useri
+     * @param values - lista cu numerele de actiuni de rating ale fiecarui user
+     * @param sortType - tipul de sortare
      * @return - Metoda returneaza un vector de utilizatori
      */
-    public static ArrayList<User> srtMWV(final ArrayList<User> u, final ArrayList<Integer> v, final String sT) {
-        ArrayList<User> sortedUsers = u;
+    public static ArrayList<User> srtUserWithValues(final ArrayList<User> users,
+                                         final ArrayList<Integer> values, final String sortType) {
+        ArrayList<User> sortedUsers = users;
         int len = sortedUsers.size();
 
         String username1;
         String username2;
-        if (sT.equals("asc")) {
+        if (sortType.equals("asc")) {
             for (int i = 0; i < len - 1; i++) {
                 for (int j = i + 1; j < len; j++) {
-                    if (v.get(i).intValue() > v.get(j).intValue()) {
-                        Collections.swap(v, i, j);
+                    if (values.get(i).intValue() > values.get(j).intValue()) {
+                        Collections.swap(values, i, j);
                         Collections.swap(sortedUsers, i, j);
-                    } else if (v.get(i).intValue() == v.get(j).intValue()) {
+                    } else if (values.get(i).intValue() == values.get(j).intValue()) {
                         username1 = sortedUsers.get(i).getUsername();
                         username2 = sortedUsers.get(j).getUsername();
                         if (username1.compareTo(username2) > 0) {
@@ -78,13 +80,13 @@ public class User {
                     }
                 }
             }
-        } else if (sT.equals("desc")) {
+        } else if (sortType.equals("desc")) {
             for (int i = 0; i < len - 1; i++) {
                 for (int j = i + 1; j < len; j++) {
-                    if (v.get(i).intValue() < v.get(j).intValue()) {
-                        Collections.swap(v, i, j);
+                    if (values.get(i).intValue() < values.get(j).intValue()) {
+                        Collections.swap(values, i, j);
                         Collections.swap(sortedUsers, i, j);
-                    } else if (v.get(i).intValue() == v.get(j).intValue()) {
+                    } else if (values.get(i).intValue() == values.get(j).intValue()) {
                         username1 = sortedUsers.get(i).getUsername();
                         username2 = sortedUsers.get(j).getUsername();
                         if (username1.compareTo(username2) < 0) {
@@ -99,7 +101,8 @@ public class User {
     }
 
     /**
-     * Creeam un StringBuilder in care concatenam o parte de inceput, numele utilizatorilor si partea de final
+     * - Creeam un StringBuilder in care concatenam o parte de inceput,
+     * numele utilizatorilor si partea de final.
      * @param sortedUsers - lista de useri sortati
      * @return - Metoda returneaza un String reprezentand raspunsul final
      */
@@ -119,7 +122,8 @@ public class User {
     }
 
     /**
-     * Adauga titlul videoului dat ca parametru in lista de favorite, verficand daca acesta a fost vizualizat si daca este deja continut
+     * - Adauga titlul videoului dat ca parametru in lista de favorite,
+     * verficand daca acesta a fost vizualizat si daca este deja continut.
      * @param video - titlul videoului dat
      * @return - Metoda returneaza raspunsul final concatenand titlul videoului cu un text dat
      */
@@ -138,7 +142,9 @@ public class User {
     }
 
     /**
-     * Metoda adauga titlul videoclipului in Map, actualizand numarul de vizualizari. Verifica daca acesta a fost vizualizat anterior.
+     * - Metoda adauga titlul videoclipului in Map,
+     * actualizand numarul de vizualizari.
+     * - Verifica daca acesta a fost vizualizat anterior.
      * @param video - titlul videoului dat
      * @return - Metoda returneaza raspunsul final concatenand titlul videoului cu un text dat
      */
@@ -154,15 +160,21 @@ public class User {
     }
 
     /**
-     * Metoda verifica daca video dat este film sau serial si daca utilizatorul a mai dat rating acestui video. Aceasta adauga ratingul in lista de ratinguri si usernameul in alta lista si se incrementeaza numarul de ratinguri date.
+     * - Metoda verifica daca video dat este film sau serial
+     * si daca utilizatorul a mai dat rating acestui video.
+     * - Aceasta adauga ratingul in lista de ratinguri si usernameul in alta lista
+     * si se incrementeaza numarul de ratinguri date.
      * @param movies - filemele din baza de date
      * @param serials - serialele din baza de date
      * @param video - titlul videoului care primeste rating
      * @param grade - valoarea ratingului dat
      * @param seasonNumber - numarul sezonului caruia i se aplica ratingul
-     * @return Metoda returneaza rezultatul final reprezentand ratingul oferit de un anumit utilizator la un anumit video
+     * @return Metoda returneaza rezultatul final reprezentand ratingul
+     * oferit de un anumit utilizator la un anumit video
      */
-    public final String setRating(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final String video, final double grade, final int seasonNumber) {
+    public final String setRating(final ArrayList<Movie> movies,
+                                  final ArrayList<SerialSeason> serials,
+                                  final String video, final double grade, final int seasonNumber) {
         if (this.viewed.containsKey(video)) {
             Movie movie = null;
             for (Movie v : movies) {
@@ -206,11 +218,15 @@ public class User {
     }
 
     /**
-     * Metoda adauga utilizatorii cu numarul de ratinguri dat intr-o lista si valorile acestora in alta. Listele sunt sortate in functie de tipul sortarii. Se extrag primii N utilizatori si se afiseaza.
+     * - Metoda adauga utilizatorii cu numarul de ratinguri dat intr-o lista
+     * si valorile acestora in alta.
+     * - Listele sunt sortate in functie de tipul sortarii.
+     * - Se extrag primii N utilizatori si se afiseaza.
      * @param n - numarul de useri ceruti
      * @param usr - lista de useri din baza de date
      * @param srtType - tipul sortarii utilizatorilor
-     * @return - Metoda returneaza un string reprezentand primii N utilizatori sortati dupa numarul de ratinguri date
+     * @return - Metoda returneaza un string reprezentand primii N utilizatori
+     * sortati dupa numarul de ratinguri date
      */
     public static String getNumOfRat(final int n, final ArrayList<User> usr, final String srtType) {
         ArrayList<User> sortedUsers = new ArrayList<>();
@@ -227,7 +243,7 @@ public class User {
 
         len = noRatUser.size();
 
-        sortedUsers = User.srtMWV(sortedUsers, noRatUser, srtType);
+        sortedUsers = User.srtUserWithValues(sortedUsers, noRatUser, srtType);
 
         if (len > n) {
             sortedUsers.subList(n, len).clear();
@@ -259,10 +275,14 @@ public class User {
     }
 
     /**
-     * Adaugam intr-o lista filemele/serialele si valorile ratingurilor acestor, sortam listele descrescator in functie de valori si le parcurgem. Afisam prima valoare gasita.
+     * - Adaugam intr-o lista filemele/serialele si valorile ratingurilor acestor,
+     * sortam listele descrescator in functie de valori si le parcurgem.
+     * - Afisam prima valoare gasita.
      * @param mov - lista de filme din baza de date
      * @param ser - lista de seriale din baza de date
-     * @return - Metoda returneaza primul videoclip nevizualizat de utilizator, videourile fiind ordonate descrescator dupa rating al doilea criteriu fiind pozitia in lista sa din baza de date
+     * @return - Metoda returneaza primul videoclip nevizualizat de utilizator,
+     * videourile fiind ordonate descrescator dupa rating
+     * al doilea criteriu fiind pozitia in lista sa din baza de date
      */
     public final String getBestUn(final ArrayList<Movie> mov, final ArrayList<SerialSeason> ser) {
         ArrayList<Movie> sortedMovies = new ArrayList<>();
@@ -385,12 +405,18 @@ public class User {
     }
 
     /**
-     *
-     * @param movies
-     * @param serials
-     * @param users
+     * - Metoda parcurge listele de filme si seriale calculand care este cel mai popular gen.
+     * - Retinem intr-o lista numarul de vizualizari a tuturor videoclipurilor din fiecare gen.
+     * - Sortam dupa numarul de vizualizari lista de genuri. Parcurgem lista de genuri sortat
+     * si cautam primul video nevizualizat din acel gen, daca nu se gaseste trecem la urmatorul.
+     * @param movies - lista de filme din baza de date
+     * @param serials - lista de seriale din baza de date
+     * @param users - lista de utilizatori din baza de date
+     * @return - Intoarce primul video nevizualizat din cel mai popular gen
      */
-    public final String getPopular(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final ArrayList<User> users) {
+    public final String getPopular(final ArrayList<Movie> movies,
+                                   final ArrayList<SerialSeason> serials,
+                                   final ArrayList<User> users) {
         ArrayList<Genre> sortedGenres = new ArrayList<>();
 
         int[] noView = new int[Genre.values().length];
@@ -476,7 +502,21 @@ public class User {
         return "PopularRecommendation cannot be applied!";
     }
 
-    public final String getRecFav(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final ArrayList<User> users) {
+    /**
+     * - Metoda parcurge listele de filme si seriale si adauga intr-o
+     * lista videourile care nu sunt vizualizate de utilizator.
+     * - De asemenea, adauga in alt vector numarul de aparitii
+     * la favorite al videoului si pozitia acestuia in lista initiala.
+     * - Listele formate sunt sortate descrescator dupa care lista de videouri este
+     * parcursa si primul element este afisat daca acesta exista.
+     * @param movies - lista de filme din baza de date
+     * @param serials - lista de seriale din baza de date
+     * @param users - lista de utilizatori din baza de date
+     * @return - Returneaza videoclipul care este intalnit cel mai des in lista de favorite
+     */
+    public final String getRecFav(final ArrayList<Movie> movies,
+                                  final ArrayList<SerialSeason> serials,
+                                  final ArrayList<User> users) {
         ArrayList<String> videos = new ArrayList<>();
         int[] noFav = new int[movies.size() + serials.size()];
         int[] poz = new int[movies.size() + serials.size()];
@@ -553,7 +593,18 @@ public class User {
         return "FavoriteRecommendation cannot be applied!";
     }
 
-    public final String getSearch(final ArrayList<Movie> movies, final ArrayList<SerialSeason> serials, final String gen) {
+    /**
+     * - Metoda creeaza o lista in care toate videoclipurile nevazute sunt adaugate
+     * si un vector in care se afla ratingurile acestora.
+     * - Sunt sortate in ordine crescatoare dupa ratinguri dupa care este format stringul final
+     * care reprezinta toate videoclipurile din lista.
+     * @param movies - lista de filme din baza de date
+     * @param serials - lista de seriale din baza de date
+     * @param gen - genul cerut
+     * @return Returneaza toate videoclipurile nevazute de utilizator dintr-un anumit gen
+     */
+    public final String getSearch(final ArrayList<Movie> movies,
+                                  final ArrayList<SerialSeason> serials, final String gen) {
         ArrayList<String> videos = new ArrayList<>();
         double[] ratings = new double[movies.size() + serials.size()];
         int len = 0;

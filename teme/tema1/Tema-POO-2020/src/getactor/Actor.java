@@ -2,10 +2,12 @@ package getactor;
 
 import actor.ActorsAwards;
 import video.Movie;
-import video.SeasonModel;
 import video.SerialSeason;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,30 +18,32 @@ public class Actor {
     private final ArrayList<String> filmography;
     private final Map<ActorsAwards, Integer> awards;
 
-    public Actor(final String name, final String careerDescription, final ArrayList<String> filmography, final Map<ActorsAwards, Integer> awards) {
+    public Actor(final String name, final String careerDescription,
+                 final ArrayList<String> filmography, final Map<ActorsAwards, Integer> awards) {
         this.name = name;
         this.careerDescription = careerDescription;
         this.filmography = filmography;
         this.awards = awards;
     }
 
-    public String getName() {
+    public final String getName() {
         return name;
     }
 
-    public String getCareerDescription() {
+    public final String getCareerDescription() {
         return careerDescription;
     }
 
-    public ArrayList<String> getFilmography() {
+    public final ArrayList<String> getFilmography() {
         return filmography;
     }
 
-    public Map<ActorsAwards, Integer> getAwards() {
+    public final Map<ActorsAwards, Integer> getAwards() {
         return awards;
     }
 
-    private static double getMed (ArrayList<String> film, ArrayList<Movie> movies, ArrayList<SerialSeason> ser) {
+    private static double getMed(final ArrayList<String> film,
+                                 final ArrayList<Movie> movies, final ArrayList<SerialSeason> ser) {
         double rez = 0;
         int nr = 0;
         boolean ok;
@@ -75,7 +79,25 @@ public class Actor {
         return rez / nr;
     }
 
-    public static String getAverage(int N, ArrayList<Actor> actors, ArrayList<Movie> movies, ArrayList<SerialSeason> seasons, String sortType) {
+    /**
+     * - Metoda parcurge toti utilizatorii si calculeaza pentru acestia media ratingului
+     * in videoclipurile in care au jucat cu ajutorul metodei getMed().
+     * - Actorii sunt adaugati intr-o lista iar mediile intr-un vector.
+     * - Acestea sunt sortate in functie de medii. In final lista de actori este
+     * scurtat la numarul cerut daca este nevoie
+     * si este format stringul final prin concatenarea numelor actorilor.
+     * @param n - numarul de actori ceruti
+     * @param actors - lista de actori din baza de date
+     * @param movies - lista de filme din baza de date
+     * @param seasons - lista de seriale din baza de date
+     * @param sortType - tipul sortarii listei de actori
+     * @return - Returneaza primii n actori sortati in functie de
+     * media ratingurilor videoclipurilor in care au jucat
+     */
+    public static String getAverage(final int n, final ArrayList<Actor> actors,
+                                    final ArrayList<Movie> movies,
+                                    final ArrayList<SerialSeason> seasons,
+                                    final String sortType) {
         ArrayList<Actor> sortAct = actors;
 
         int lenArray = sortAct.size();
@@ -85,7 +107,7 @@ public class Actor {
         int len = 0;
         double medie;
 
-        for (int i = 0 ; i < lenArray; i++) {
+        for (int i = 0; i < lenArray; i++) {
             medie = getMed(sortAct.get(i).getFilmography(), movies, seasons);
             if (medie > 0) {
                 ratmed[len] = medie;
@@ -105,9 +127,9 @@ public class Actor {
         }
 
         double aux;
-        for (int i = 0 ; i < lenArray - 1; i++){
-            for (int j = i + 1 ; j < lenArray; j++){
-                if (ok == true) {
+        for (int i = 0; i < lenArray - 1; i++) {
+            for (int j = i + 1; j < lenArray; j++) {
+                if (ok) {
                     if (ratmed[i] > ratmed[j]) {
                         aux = ratmed[i];
                         ratmed[i] = ratmed[j];
@@ -139,8 +161,8 @@ public class Actor {
             }
         }
 
-        if (lenArray > N) {
-            sortAct.subList(N, lenArray).clear();
+        if (lenArray > n) {
+            sortAct.subList(n, lenArray).clear();
         }
 
         StringBuilder str = new StringBuilder();
@@ -159,7 +181,19 @@ public class Actor {
         return retstr;
     }
 
-    public static String getAwaAct(List<String> filtAwards, ArrayList<Actor> actors, String sortType) {
+    /**
+     * - Metoda parcurge lista de actori si verifica cate premii are ficare actor.
+     * - Daca acesta le detine pe toate cele cerute este adugat intr-o lista,
+     * iar numarul de premii intr-un vector.
+     * - Acestea sunt sortate dupa numarul de premii, in ordinea ceruta.
+     * - In final este format un string in care sunt afisati toti actorii sortati.
+     * @param filtAwards - lista de filtre din baza de date
+     * @param actors - lista de actori din baza de date
+     * @param sortType - tipul de sortare din query
+     * @return Returneaza actorii cu toate premiile oferite in filtre
+     */
+    public static String getAwaAct(final List<String> filtAwards,
+                                   final ArrayList<Actor> actors, final String sortType) {
         ArrayList<Actor> finSortActors = new ArrayList<>();
         int[] noAwa = new int[actors.size()];
 
@@ -167,11 +201,11 @@ public class Actor {
         int len = 0;
         int aux;
 
-        for (Actor a:actors){
+        for (Actor a:actors) {
             ok = true;
 
             for (String fa:filtAwards) {
-                if (!a.getAwards().containsKey(ActorsAwards.valueOf(fa))){
+                if (!a.getAwards().containsKey(ActorsAwards.valueOf(fa))) {
                     ok = false;
                     break;
                 }
@@ -179,15 +213,17 @@ public class Actor {
 
             Collection<Integer> vals = a.getAwards().values();
 
-            if (ok == true) {
+            if (ok) {
                 finSortActors.add(a);
                 noAwa[len] = vals.stream().mapToInt(Integer::valueOf).sum();
                 len++;
             }
         }
 
-        for (int i = 0 ; i < len - 1; i++){
-            for (int j = i + 1 ; j < len; j++) {
+        String name1;
+        String name2;
+        for (int i = 0; i < len - 1; i++) {
+            for (int j = i + 1; j < len; j++) {
                 if (sortType.equals("asc")) {
                     if (noAwa[i] > noAwa[j]) {
                         aux = noAwa[i];
@@ -195,7 +231,9 @@ public class Actor {
                         noAwa[j] = aux;
                         Collections.swap(finSortActors, i, j);
                     } else if (noAwa[i] == noAwa[j]) {
-                        if (finSortActors.get(i).getName().compareTo(finSortActors.get(j).getName()) > 0) {
+                        name1 = finSortActors.get(i).getName();
+                        name2 = finSortActors.get(j).getName();
+                        if (name1.compareTo(name2) > 0) {
                             aux = noAwa[i];
                             noAwa[i] = noAwa[j];
                             noAwa[j] = aux;
@@ -209,7 +247,9 @@ public class Actor {
                         noAwa[j] = aux;
                         Collections.swap(finSortActors, i, j);
                     } else if (noAwa[i] == noAwa[j]) {
-                        if (finSortActors.get(i).getName().compareTo(finSortActors.get(j).getName()) < 0) {
+                        name1 = finSortActors.get(i).getName();
+                        name2 = finSortActors.get(j).getName();
+                        if (name1.compareTo(name2) < 0) {
                             aux = noAwa[i];
                             noAwa[i] = noAwa[j];
                             noAwa[j] = aux;
@@ -236,7 +276,20 @@ public class Actor {
         return retstr;
     }
 
-    public static String getFilterDescription(List<String> words, ArrayList<Actor> actors, String sortType) {
+    /**
+     * - Metoda parcurge toti actorii si verifica
+     * daca in descrierilor lor se gasesc toate cuvintele.
+     * - Daca se gasesc actorii sunt adaugati intr-o lista
+     * care este sortat in functie de tip, in ordine alfabetica.
+     * - In final este creeat un string in care sunt adaugate numele actorilor din lista sortat.
+     * @param words - lista de cuvinte din filtrele din baza de date
+     * @param actors - lista de actori din baza de date
+     * @param sortType - tipul sortarii cerute
+     * @return Returneaza toti actorii in descrierea carora apar toate keywordurile din filtre
+     */
+    public static String getFilterDescription(final List<String> words,
+                                              final ArrayList<Actor> actors,
+                                              final String sortType) {
         ArrayList<Actor> sortActors = new ArrayList<>();
 
         boolean ok;
@@ -245,7 +298,8 @@ public class Actor {
             ok = true;
 
             for (String w:words) {
-                Pattern patt = Pattern.compile("[ '.,!{}()-]" + w + "[ '.,!{}()-]", Pattern.CASE_INSENSITIVE);
+                String text = "[ '.,!{}()-]";
+                Pattern patt = Pattern.compile(text + w + text, Pattern.CASE_INSENSITIVE);
                 Matcher m = patt.matcher(a.careerDescription);
 
                 ok = m.find();

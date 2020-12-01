@@ -1,40 +1,52 @@
 package video;
 
-import getactor.Actor;
 import user.User;
 
-import java.rmi.MarshalledObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.SocketHandler;
 
 public class Movie extends Video {
     private final int duration;
     private List<Double> ratings;
     private List<String> userName;
 
-    public Movie(final String title, final int year, final ArrayList<String> genres, final ArrayList<String> cast, final int duration) {
+    public Movie(final String title, final int year,
+                 final ArrayList<String> genres, final ArrayList<String> cast,
+                 final int duration) {
         super(title, year, genres, cast);
         this.duration = duration;
         this.ratings = new ArrayList<>();
         this.userName = new ArrayList<>();
     }
 
-    public void setRating(double grade, String name) {
+    /**
+     * Metoda retine in liste ratingul si numele utilizatorului
+     * @param grade - ratingul dat
+     * @param name - numele utilizatorului
+     */
+    public final void setRating(final double grade, final String name) {
         this.ratings.add(grade);
         this.userName.add(name);
     }
 
-    public List<String> getuserName() { return userName; }
-    public List<Double> getRating() {
+    /**
+     * @return Metodele returneaza usernameul, lista de ratinguri si durata filmului
+     */
+    public final List<String> getuserName() {
+        return userName;
+    }
+    public final List<Double> getRating() {
         return ratings;
     }
-    public int getDuration() {
+    public final int getDuration() {
         return duration;
     }
 
-    public double getValueRating() {
+    /**
+     * @return Returneaza ratingul filmului
+     */
+    public final double getValueRating() {
         double val = 0;
         int nr = 0;
 
@@ -50,36 +62,52 @@ public class Movie extends Video {
         return val / nr;
     }
 
-    public static ArrayList<Movie> sortMoviesWithValues(ArrayList<Movie> movies, double[] values, String SortType) {
+    /**
+     * - Functia sorteaza o lista de filme dupa valorile din vectorul
+     * dat ca parametru in functie de tipul sortarii
+     * @param movies - lista de filme din baza de date
+     * @param values - lista de valori care se sorteaza
+     * @param sortType - tipul sortarii
+     * @return Returneaza o lista de filme sortate corespunzator
+     */
+    public static ArrayList<Movie> sortMoviesWithValues(final ArrayList<Movie> movies,
+                                                        final double[] values,
+                                                        final String sortType) {
         ArrayList<Movie> sortedMovies = movies;
         int len = sortedMovies.size();
         double aux;
 
-        if (SortType.equals("asc")) {
-            for (int i = 0 ; i < len - 1 ; i++) {
-                for (int j = i + 1 ; j < len ; j++) {
+        String movieName1;
+        String movieName2;
+        if (sortType.equals("asc")) {
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = i + 1; j < len; j++) {
                     if (values[i] > values[j]) {
                         aux = values[i];
                         values[i] = values[j];
                         values[j] = aux;
                         Collections.swap(sortedMovies, i, j);
                     } else if (values[i] == values[j]) {
-                        if (sortedMovies.get(i).getTitle().compareTo(sortedMovies.get(j).getTitle()) > 0) {
+                        movieName1 = sortedMovies.get(i).getTitle();
+                        movieName2 = sortedMovies.get(j).getTitle();
+                        if (movieName1.compareTo(movieName2) > 0) {
                             Collections.swap(sortedMovies, i, j);
                         }
                     }
                 }
             }
-        } else if (SortType.equals("desc")) {
-            for (int i = 0 ; i < len - 1 ; i++) {
-                for (int j = i + 1 ; j < len ; j++) {
+        } else if (sortType.equals("desc")) {
+            for (int i = 0; i < len - 1; i++) {
+                for (int j = i + 1; j < len; j++) {
                     if (values[i] < values[j]) {
                         aux = values[i];
                         values[i] = values[j];
                         values[j] = aux;
                         Collections.swap(sortedMovies, i, j);
                     } else if (values[i] == values[j]) {
-                        if (sortedMovies.get(i).getTitle().compareTo(sortedMovies.get(j).getTitle()) < 0) {
+                        movieName1 = sortedMovies.get(i).getTitle();
+                        movieName2 = sortedMovies.get(j).getTitle();
+                        if (movieName1.compareTo(movieName2) < 0) {
                             Collections.swap(sortedMovies, i, j);
                         }
                     }
@@ -90,7 +118,12 @@ public class Movie extends Video {
         return sortedMovies;
     }
 
-    public static String getRezStr(ArrayList<Movie> sortMovies) {
+    /**
+     * Metoda creeaza un string la care se lipesc numele filmelor care sunt primite ca parametru.
+     * @param sortMovies
+     * @return Returneaza un string rezultat
+     */
+    public static String getRezStr(final ArrayList<Movie> sortMovies) {
         StringBuilder str = new StringBuilder();
         str.append("Query result: [");
 
@@ -105,7 +138,20 @@ public class Movie extends Video {
         return str.toString();
     }
 
-    public static int checkYearAndGenre(List <String> year, List <String> genre, Movie m) {
+    /**
+     * - Metoda parcurge lista de ani si verifica daca
+     * cel mult unul din acestia este egal cu anul filmului.
+     * - Aceasta face acelasi lucru si pentru lista de genuri
+     * dupa care returneaza ce caracteristici sunt valide
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param m - filmul care se verifica
+     * @return Returneaza daca anii si/sau genurile sunt date
+     * in filtrele din baza de date si daca filmul are aceste caracteristici
+     */
+    public static int checkYearAndGenre(final List<String> year,
+                                        final List<String> genre,
+                                        final Movie m) {
         boolean ok1 = false;
         boolean ok2 = false;
 
@@ -130,19 +176,32 @@ public class Movie extends Video {
             }
         }
 
-        if (ok1 == true && ok2 == false) {
+        if (ok1 && !ok2) {
             return 1;
-        } else if (ok1 == false && ok2 == true) {
+        } else if (!ok1 && ok2) {
             return 2;
-        } else if (ok1 == true && ok2 == true) {
-            return 3;
+        } else if (ok1 && ok2) {
+            return -1;
         }
 
         return 0;
     }
 
-
-    public static String getRatMov(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, String SortType) {
+    /**
+     * - Metoda parcurge lista de filme si verifica care sunt caracteristicile (an si gen)
+     * dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata, scurtata daca este nevoie si este afisata,
+     * cu ajutorul functiilor de mai sus.
+     * @param n - numarul de filme cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param movies - lista filmelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n filme sortate dupa rating
+     */
+    public static String getRatMov(final int n, final List<String> year,
+                                   final List<String> genre, final ArrayList<Movie> movies,
+                                   final String sortType) {
         ArrayList<Movie> sortMovies = new ArrayList<>();
         double[] sortVal = new double[movies.size()];
         int len = 0;
@@ -158,7 +217,7 @@ public class Movie extends Video {
             if (rating != 0.0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             sortVal[len] = rating;
                             sortMovies.add(m);
                             len++;
@@ -186,16 +245,31 @@ public class Movie extends Video {
             }
         }
 
-        sortMovies = Movie.sortMoviesWithValues(sortMovies, sortVal, SortType);
+        sortMovies = Movie.sortMoviesWithValues(sortMovies, sortVal, sortType);
 
-        if (len > N) {
-            sortMovies.subList(N, len).clear();
+        if (len > n) {
+            sortMovies.subList(n, len).clear();
         }
 
         return Movie.getRezStr(sortMovies);
     }
 
-    public static String getFavMov(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, ArrayList<User> users, String sortType) {
+    /**
+     * - Metoda parcurge lista de filme, calculeaza numarul de aparente
+     * in lista de favorite si verifica (an si gen)
+     * care sunt caracteristicile dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata dupa numarul de aparente si este afisata,
+     * cu ajutorul functiilor de mai sus.
+     * @param n - numarul de filme cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param movies - lista filmelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n filme sortate dupa nr de aparitii in listele de favorite
+     */
+    public static String getFavMov(final int n, final List<String> year,
+                                   final List<String> genre, final ArrayList<Movie> movies,
+                                   final ArrayList<User> users, final String sortType) {
         ArrayList<Movie> sortedMovies = new ArrayList<>();
         double[] noApp = new double[movies.size()];
         int len = 0;
@@ -216,7 +290,7 @@ public class Movie extends Video {
             if (no != 0.0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             noApp[len] = no;
                             sortedMovies.add(m);
                             len++;
@@ -246,14 +320,28 @@ public class Movie extends Video {
 
         sortedMovies = Movie.sortMoviesWithValues(sortedMovies, noApp, sortType);
 
-        if (len > N) {
-            sortedMovies.subList(N, len).clear();
+        if (len > n) {
+            sortedMovies.subList(n, len).clear();
         }
 
         return Movie.getRezStr(sortedMovies);
     }
 
-    public static String getLongestMovie(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, String sortType) {
+    /**
+     * - Metoda parcurge lista de filme, ia durata filmului
+     * si verifica care sunt caracteristicile (an si gen)
+     * dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata dupa durate si este afisata, cu ajutorul functiilor de mai sus.
+     * @param n - numarul de filme cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param movies - lista filmelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n filme sortate dupa durata lor
+     */
+    public static String getLongestMovie(final int n, final List<String> year,
+                                         final List<String> genre, final ArrayList<Movie> movies,
+                                         final String sortType) {
         ArrayList<Movie> sortedMovies = new ArrayList<>();
         double[] dur = new double[movies.size()];
         int ok;
@@ -267,7 +355,7 @@ public class Movie extends Video {
             if (duration != 0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             dur[len] = duration * 1.0;
                             sortedMovies.add(m);
                             len++;
@@ -297,14 +385,29 @@ public class Movie extends Video {
 
         sortedMovies = Movie.sortMoviesWithValues(sortedMovies, dur, sortType);
 
-        if (len > N) {
-            sortedMovies.subList(N, len).clear();
+        if (len > n) {
+            sortedMovies.subList(n, len).clear();
         }
 
         return Movie.getRezStr(sortedMovies);
     }
 
-    public static String getMostViewedMovie(int N, List<String> year, List<String> genre, ArrayList<Movie> movies, ArrayList<User> users, String sortType) {
+    /**
+     * - Metoda parcurge lista de filme, retine numarul de vizualizari
+     * si verifica care sunt caracteristicile (an si gen)
+     * dupa care acestea sunt adaugate in lista de sortare.
+     * - Lista este sortata dupa numarul de vizualizari si este afisata,
+     * cu ajutorul functiilor de mai sus.
+     * @param n - numarul de filme cerute
+     * @param year - lista de ani din filtre
+     * @param genre - lista de genuri din filtre
+     * @param movies - lista filmelor din baza de date
+     * @param sortType - tipul sortarii
+     * @return - Returneaza primele n filme sortate dupa numarul de vizualizari
+     */
+    public static String getMostViewedMovie(final int n, final List<String> year,
+                                            final List<String> genre, final ArrayList<Movie> movies,
+                                            final ArrayList<User> users, final String sortType) {
         ArrayList<Movie> sortedMovies = new ArrayList<>();
         double[] noView = new double[movies.size()];
         int len = 0;
@@ -324,7 +427,7 @@ public class Movie extends Video {
             if (no != 0.0) {
                 if (year.get(0) != null) {
                     if (genre.get(0) != null) {
-                        if (ok == 3) {
+                        if (ok == -1) {
                             noView[len] = no;
                             sortedMovies.add(m);
                             len++;
@@ -354,8 +457,8 @@ public class Movie extends Video {
 
         sortedMovies = Movie.sortMoviesWithValues(sortedMovies, noView, sortType);
 
-        if (len > N) {
-            sortedMovies.subList(N, len).clear();
+        if (len > n) {
+            sortedMovies.subList(n, len).clear();
         }
 
         return Movie.getRezStr(sortedMovies);
